@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D714B872-3B00-4122-A88D-FF63F830C4E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qora.Billing.Domain", "src\Qora.Billing.Domain\Qora.Billing.Domain.csproj", "{D9938AF6-2725-496F-B064-43AC4421EF50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qora.Billing.Application", "src\Qora.Billing.Application\Qora.Billing.Application.csproj", "{929E0EA2-247D-40A7-BEDE-E471E08FA067}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qora.Billing.Infrastructure", "src\Qora.Billing.Infrastructure\Qora.Billing.Infrastructure.csproj", "{5CF6CD85-DC85-4F87-8F44-892BD0D39117}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qora.Billing.Api", "src\Qora.Billing.Api\Qora.Billing.Api.csproj", "{CDF32656-39DB-4748-A5CF-8DDA1C9B0716}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{52B938C0-62C6-4A30-9B5E-0C9EE221FEAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qora.Billing.UnitTests", "tests\Qora.Billing.UnitTests\Qora.Billing.UnitTests.csproj", "{78A150E2-C4CF-4BB1-9303-E591B757AD3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qora.Billing.IntegrationTests", "tests\Qora.Billing.IntegrationTests\Qora.Billing.IntegrationTests.csproj", "{AC3EEEDD-E9BE-438C-9360-7A0A238A1EDD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D9938AF6-2725-496F-B064-43AC4421EF50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9938AF6-2725-496F-B064-43AC4421EF50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9938AF6-2725-496F-B064-43AC4421EF50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9938AF6-2725-496F-B064-43AC4421EF50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{929E0EA2-247D-40A7-BEDE-E471E08FA067}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{929E0EA2-247D-40A7-BEDE-E471E08FA067}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{929E0EA2-247D-40A7-BEDE-E471E08FA067}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{929E0EA2-247D-40A7-BEDE-E471E08FA067}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CF6CD85-DC85-4F87-8F44-892BD0D39117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CF6CD85-DC85-4F87-8F44-892BD0D39117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CF6CD85-DC85-4F87-8F44-892BD0D39117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CF6CD85-DC85-4F87-8F44-892BD0D39117}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDF32656-39DB-4748-A5CF-8DDA1C9B0716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDF32656-39DB-4748-A5CF-8DDA1C9B0716}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDF32656-39DB-4748-A5CF-8DDA1C9B0716}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDF32656-39DB-4748-A5CF-8DDA1C9B0716}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78A150E2-C4CF-4BB1-9303-E591B757AD3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78A150E2-C4CF-4BB1-9303-E591B757AD3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78A150E2-C4CF-4BB1-9303-E591B757AD3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78A150E2-C4CF-4BB1-9303-E591B757AD3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC3EEEDD-E9BE-438C-9360-7A0A238A1EDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC3EEEDD-E9BE-438C-9360-7A0A238A1EDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC3EEEDD-E9BE-438C-9360-7A0A238A1EDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC3EEEDD-E9BE-438C-9360-7A0A238A1EDD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D9938AF6-2725-496F-B064-43AC4421EF50} = {D714B872-3B00-4122-A88D-FF63F830C4E2}
+		{929E0EA2-247D-40A7-BEDE-E471E08FA067} = {D714B872-3B00-4122-A88D-FF63F830C4E2}
+		{5CF6CD85-DC85-4F87-8F44-892BD0D39117} = {D714B872-3B00-4122-A88D-FF63F830C4E2}
+		{CDF32656-39DB-4748-A5CF-8DDA1C9B0716} = {D714B872-3B00-4122-A88D-FF63F830C4E2}
+		{78A150E2-C4CF-4BB1-9303-E591B757AD3F} = {52B938C0-62C6-4A30-9B5E-0C9EE221FEAA}
+		{AC3EEEDD-E9BE-438C-9360-7A0A238A1EDD} = {52B938C0-62C6-4A30-9B5E-0C9EE221FEAA}
+	EndGlobalSection
+EndGlobal

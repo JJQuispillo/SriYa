@@ -1,0 +1,63 @@
+services:
+  billing-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qora-billing-api
+    ports:
+      - "${BILLING_API_PORT:-8080}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=qora_billing;Username=${BILLING_DB_USER:-billing_user};Password=${BILLING_DB_PASSWORD}
+      - Sri__BaseUrlPruebas=${SRI_BASE_URL_PRUEBAS:-https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline}
+      - Sri__BaseUrlProduccion=${SRI_BASE_URL_PRODUCCION:-https://cel.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline}
+      - Sri__AuthorizationUrlPruebas=${SRI_AUTH_URL_PRUEBAS:-https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline}
+      - Sri__AuthorizationUrlProduccion=${SRI_AUTH_URL_PRODUCCION:-https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline}
+      - Sri__TimeoutSeconds=${SRI_TIMEOUT:-30}
+      - Sri__MaxRetries=${SRI_MAX_RETRIES:-3}
+      - ServiceAuth__ServiceToken=${SERVICE_AUTH_TOKEN}
+      - Cors__AllowedOrigins__0=${CORS_ORIGIN_0:-https://app.qora.app}
+    depends_on:
+      billing-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - billing-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.billing-api.rule=Host(`facturacion.qora.app`)"
+      - "traefik.http.routers.billing-api.entrypoints=websecure"
+      - "traefik.http.routers.billing-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.billing-api.loadbalancer.server.port=8080"
+
+  billing-db:
+    image: postgres:16-alpine
+    container_name: qora-billing-db
+    environment:
+      POSTGRES_DB: qora_billing
+      POSTGRES_USER: ${BILLING_DB_USER:-billing_user}
+      POSTGRES_PASSWORD: ${BILLING_DB_PASSWORD}
+    volumes:
+      - billing-db-data:/var/lib/postgresql/data
+    networks:
+      - billing-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BILLING_DB_USER:-billing_user} -d qora_billing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  billing-db-data:
+
+networks:
+  billing-network:
+    driver: bridge
