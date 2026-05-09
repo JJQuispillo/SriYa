@@ -151,7 +151,7 @@ public class SriRetryService : BackgroundService
         // Check if max retries exceeded (RetryCount is current count before the next ScheduleRetry increment)
         if (document.RetryCount + 1 >= MaxRetries)
         {
-            document.MarkFailed($"Max retries ({MaxRetries}) exceeded. Last error: {errorMessage}");
+            document.MarkFailed($"Se superó el máximo de reintentos ({MaxRetries}). Último error: {errorMessage}");
             _logger.LogWarning(
                 "Document {DocumentId} marked as Failed after {MaxRetries} retries",
                 document.Id, MaxRetries);

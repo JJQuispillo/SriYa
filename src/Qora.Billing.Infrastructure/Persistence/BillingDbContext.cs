@@ -1,7 +1,9 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Qora.Billing.Domain.Entities;
 using Qora.Billing.Domain.Events;
+using Qora.Billing.Infrastructure.Persistence.Configurations;
 
 namespace Qora.Billing.Infrastructure.Persistence;
 
@@ -13,6 +15,7 @@ public class BillingDbContext : DbContext
 {
     private Guid? _currentTenantId;
     private readonly IPublisher? _publisher;
+    private readonly string _encryptionKey;
 
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<DocumentItem> DocumentItems => Set<DocumentItem>();
@@ -23,16 +26,19 @@ public class BillingDbContext : DbContext
     public DbSet<ElectronicSignature> ElectronicSignatures => Set<ElectronicSignature>();
     public DbSet<DocumentEvent> DocumentEvents => Set<DocumentEvent>();
     public DbSet<UsageRecord> UsageRecords => Set<UsageRecord>();
+    public DbSet<SriTaxCode> SriTaxCodes => Set<SriTaxCode>();
 
-    public BillingDbContext(DbContextOptions<BillingDbContext> options)
+    public BillingDbContext(DbContextOptions<BillingDbContext> options, IConfiguration configuration)
         : base(options)
     {
+        _encryptionKey = configuration["Encryption:Key"] ?? "default-key-change-in-production!!";
     }
 
-    public BillingDbContext(DbContextOptions<BillingDbContext> options, IPublisher publisher)
+    public BillingDbContext(DbContextOptions<BillingDbContext> options, IPublisher publisher, IConfiguration configuration)
         : base(options)
     {
         _publisher = publisher;
+        _encryptionKey = configuration["Encryption:Key"] ?? "default-key-change-in-production!!";
     }
 
     /// <summary>
@@ -48,7 +54,13 @@ public class BillingDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(BillingDbContext).Assembly);
+        // Apply all configurations from assembly (excludes TenantConfiguration which needs the encryption key)
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(BillingDbContext).Assembly,
+            t => t != typeof(TenantConfiguration));
+
+        // Apply TenantConfiguration separately to pass the encryption key
+        modelBuilder.ApplyConfiguration(new TenantConfiguration(_encryptionKey));
 
         // Global query filters for multi-tenancy
         modelBuilder.Entity<Document>()

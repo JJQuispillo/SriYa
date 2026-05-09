@@ -26,7 +26,7 @@ public class UploadCertificateCommandHandler : IRequestHandler<UploadCertificate
     public async Task<CertificateResponse> Handle(UploadCertificateCommand command, CancellationToken cancellationToken)
     {
         var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, cancellationToken)
-            ?? throw new BillingDomainException($"Tenant {command.TenantId} not found.");
+            ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
         tenant.EnsureActive();
 
         // Extract expiration date from the PKCS#12 certificate
@@ -38,7 +38,7 @@ public class UploadCertificateCommandHandler : IRequestHandler<UploadCertificate
         }
         catch (Exception ex)
         {
-            throw new BillingDomainException($"Invalid certificate or password: {ex.Message}", ex);
+            throw new BillingDomainException($"Certificado o contraseña inválidos: {ex.Message}", ex);
         }
 
         // Deactivate any existing active certificate for this tenant

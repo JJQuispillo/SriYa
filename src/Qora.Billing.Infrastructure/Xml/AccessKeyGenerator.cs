@@ -40,15 +40,15 @@ public static class AccessKeyGenerator
         ArgumentNullException.ThrowIfNull(numericCode);
 
         if (ruc.Length != 13)
-            throw new ArgumentException("RUC must be exactly 13 digits.", nameof(ruc));
+            throw new ArgumentException("El RUC debe tener exactamente 13 dígitos.", nameof(ruc));
         if (establishment.Length != 3)
-            throw new ArgumentException("Establishment must be exactly 3 digits.", nameof(establishment));
+            throw new ArgumentException("El establecimiento debe tener exactamente 3 dígitos.", nameof(establishment));
         if (emissionPoint.Length != 3)
-            throw new ArgumentException("Emission point must be exactly 3 digits.", nameof(emissionPoint));
+            throw new ArgumentException("El punto de emisión debe tener exactamente 3 dígitos.", nameof(emissionPoint));
         if (sequential.Length != 9)
-            throw new ArgumentException("Sequential must be exactly 9 digits.", nameof(sequential));
+            throw new ArgumentException("El secuencial debe tener exactamente 9 dígitos.", nameof(sequential));
         if (numericCode.Length != 8)
-            throw new ArgumentException("Numeric code must be exactly 8 digits.", nameof(numericCode));
+            throw new ArgumentException("El código numérico debe tener exactamente 8 dígitos.", nameof(numericCode));
 
         var dateStr = issueDate.ToString("ddMMyyyy");
         var docTypeCode = ((int)documentType).ToString("D2");
@@ -59,7 +59,7 @@ public static class AccessKeyGenerator
         var baseKey = $"{dateStr}{docTypeCode}{ruc}{envCode}{establishment}{emissionPoint}{sequential}{numericCode}{emissionCode}";
 
         if (baseKey.Length != 48)
-            throw new InvalidOperationException($"Base key must be 48 digits, got {baseKey.Length}.");
+            throw new InvalidOperationException($"La clave base debe tener 48 dígitos, se obtuvieron {baseKey.Length}.");
 
         var checkDigit = CalculateMod11CheckDigit(baseKey);
         var fullKey = baseKey + checkDigit;
@@ -74,7 +74,7 @@ public static class AccessKeyGenerator
     public static int CalculateMod11CheckDigit(string digits)
     {
         if (digits.Length != 48)
-            throw new ArgumentException("Digits must be exactly 48 characters.", nameof(digits));
+            throw new ArgumentException("Los dígitos deben tener exactamente 48 caracteres.", nameof(digits));
 
         var weights = new[] { 2, 3, 4, 5, 6, 7 };
         var sum = 0;

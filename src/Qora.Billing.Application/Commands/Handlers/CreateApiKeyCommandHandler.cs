@@ -32,7 +32,7 @@ public class CreateApiKeyCommandHandler : IRequestHandler<CreateApiKeyCommand, A
     public async Task<ApiKeyResponse> Handle(CreateApiKeyCommand command, CancellationToken cancellationToken)
     {
         var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, cancellationToken)
-            ?? throw new BillingDomainException($"Tenant {command.TenantId} not found.");
+            ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
         tenant.EnsureActive();
 
         // Generate a cryptographically secure random API key with environment-aware prefix

@@ -6,7 +6,7 @@ public class CertificateExpiredException : BillingDomainException
     public DateTime ExpirationDate { get; }
 
     public CertificateExpiredException(Guid tenantId, DateTime expirationDate)
-        : base($"Electronic signature for tenant {tenantId} expired on {expirationDate:yyyy-MM-dd}.")
+        : base($"La firma electrónica del tenant {tenantId} venció el {expirationDate:yyyy-MM-dd}.")
     {
         TenantId = tenantId;
         ExpirationDate = expirationDate;

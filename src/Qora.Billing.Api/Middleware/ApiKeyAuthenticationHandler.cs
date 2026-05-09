@@ -40,7 +40,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         var apiKey = apiKeyValues.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            return AuthenticateResult.Fail("API key is empty.");
+            return AuthenticateResult.Fail("La API key está vacía.");
         }
 
         // Hash the provided key with SHA-256
@@ -51,17 +51,17 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
         if (apiKeyEntity is null)
         {
-            return AuthenticateResult.Fail("Invalid API key.");
+            return AuthenticateResult.Fail("API key inválida.");
         }
 
         if (!apiKeyEntity.IsActive)
         {
-            return AuthenticateResult.Fail("API key has been revoked.");
+            return AuthenticateResult.Fail("La API key ha sido revocada.");
         }
 
         if (apiKeyEntity.ExpiresAt.HasValue && apiKeyEntity.ExpiresAt.Value < DateTime.UtcNow)
         {
-            return AuthenticateResult.Fail("API key has expired.");
+            return AuthenticateResult.Fail("La API key ha expirado.");
         }
 
         var claims = new[]

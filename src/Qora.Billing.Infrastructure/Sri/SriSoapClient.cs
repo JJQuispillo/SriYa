@@ -89,7 +89,7 @@ public class SriSoapClient : ISriClient
             _logger.LogError("SRI SOAP request failed with status {StatusCode}: {Response}",
                 response.StatusCode, responseContent);
             throw new HttpRequestException(
-                $"SRI SOAP request failed with status code {response.StatusCode}.");
+                $"La solicitud SOAP al SRI falló con código de estado {response.StatusCode}.");
         }
 
         return responseContent;
@@ -131,7 +131,7 @@ public class SriSoapClient : ISriClient
 
         // Navigate SOAP envelope to find the response body
         var body = doc.Descendants(SoapNs + "Body").FirstOrDefault()
-            ?? throw new InvalidOperationException("Invalid SOAP response: missing Body element.");
+            ?? throw new InvalidOperationException("Respuesta SOAP inválida: falta el elemento Body.");
 
         // SRI returns estado = RECIBIDA or DEVUELTA
         var estado = body.Descendants("estado").FirstOrDefault()?.Value ?? "UNKNOWN";
@@ -158,7 +158,7 @@ public class SriSoapClient : ISriClient
         var doc = XDocument.Parse(responseXml);
 
         var body = doc.Descendants(SoapNs + "Body").FirstOrDefault()
-            ?? throw new InvalidOperationException("Invalid SOAP response: missing Body element.");
+            ?? throw new InvalidOperationException("Respuesta SOAP inválida: falta el elemento Body.");
 
         // Look for autorizacion element inside the response
         var autorizacion = body.Descendants("autorizacion").FirstOrDefault();
@@ -170,7 +170,7 @@ public class SriSoapClient : ISriClient
             return new SriAuthorizationResult(
                 false, null, null,
                 "NO_ENCONTRADO",
-                [$"No authorizations found. Total comprobantes: {numAutorizaciones}"]);
+                [$"No se encontraron autorizaciones. Total comprobantes: {numAutorizaciones}"]);
         }
 
         var estado = autorizacion.Element("estado")?.Value ?? "UNKNOWN";

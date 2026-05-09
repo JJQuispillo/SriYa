@@ -19,6 +19,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
     private readonly IElectronicSignatureRepository _signatureRepository;
     private readonly IDocumentEventRepository _documentEventRepository;
     private readonly IUsageRecordRepository _usageRecordRepository;
+    private readonly ISriTaxCodeRepository _sriTaxCodeRepository;
     private readonly IEnumerable<IDocumentTypeStrategy> _strategies;
     private readonly IDocumentSigner _documentSigner;
     private readonly ISriClient _sriClient;
@@ -31,6 +32,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         IElectronicSignatureRepository signatureRepository,
         IDocumentEventRepository documentEventRepository,
         IUsageRecordRepository usageRecordRepository,
+        ISriTaxCodeRepository sriTaxCodeRepository,
         IEnumerable<IDocumentTypeStrategy> strategies,
         IDocumentSigner documentSigner,
         ISriClient sriClient,
@@ -42,6 +44,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         _signatureRepository = signatureRepository;
         _documentEventRepository = documentEventRepository;
         _usageRecordRepository = usageRecordRepository;
+        _sriTaxCodeRepository = sriTaxCodeRepository;
         _strategies = strategies;
         _documentSigner = documentSigner;
         _sriClient = sriClient;
@@ -53,12 +56,12 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
     {
         // 1. Validate tenant exists and is active
         var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, cancellationToken)
-            ?? throw new BillingDomainException($"Tenant {command.TenantId} not found.");
+            ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
         tenant.EnsureActive();
 
         // 2. Get active certificate
         var signature = await _signatureRepository.GetActiveByTenantIdAsync(command.TenantId, cancellationToken)
-            ?? throw new BillingDomainException($"No active certificate found for tenant {command.TenantId}.");
+            ?? throw new BillingDomainException($"No se encontró un certificado activo para el tenant {command.TenantId}.");
         signature.EnsureValid();
 
         // 3. Create Document entity
@@ -76,6 +79,11 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         {
             foreach (var itemDto in command.Request.Items)
             {
+                // Derive TaxRate from the SRI reference table instead of trusting caller input
+                var taxCode = await _sriTaxCodeRepository.FindAsync(itemDto.TaxCode, itemDto.TaxPercentageCode, cancellationToken)
+                    ?? throw new BillingDomainException(
+                        $"Código de impuesto '{itemDto.TaxCode}/{itemDto.TaxPercentageCode}' no está registrado.");
+
                 var item = DocumentItem.Create(
                     document.Id,
                     itemDto.MainCode,
@@ -83,7 +91,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
                     itemDto.Quantity,
                     itemDto.UnitPrice,
                     itemDto.Discount,
-                    itemDto.TaxRate,
+                    taxCode.Rate,
                     itemDto.TaxCode,
                     itemDto.TaxPercentageCode,
                     itemDto.AuxiliaryCode,
@@ -155,7 +163,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         if (validationErrors.Count > 0)
         {
             throw new DocumentValidationException(
-                $"Document validation failed: {string.Join("; ", validationErrors)}");
+                $"La validación del documento falló: {string.Join("; ", validationErrors)}");
         }
 
         // 6. Generate XML (strategy delegates to IXmlGenerator internally)
@@ -173,7 +181,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         document.SetXmlContent(xml, ExtractAccessKeyFromXml(xml));
 
         await _documentEventRepository.CreateAsync(
-            DocumentEvent.Create(document.Id, command.TenantId, EventType.XmlGenerated, "XML generated successfully."),
+            DocumentEvent.Create(document.Id, command.TenantId, EventType.XmlGenerated, "XML generado exitosamente."),
             cancellationToken);
 
         _logger.LogInformation("XML generated for document {DocumentId}", document.Id);
@@ -184,7 +192,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         document.SetSignedXml(signedXml);
 
         await _documentEventRepository.CreateAsync(
-            DocumentEvent.Create(document.Id, command.TenantId, EventType.Signed, "Document signed with XAdES-BES."),
+            DocumentEvent.Create(document.Id, command.TenantId, EventType.Signed, "Documento firmado con XAdES-BES."),
             cancellationToken);
 
         _logger.LogInformation("Document {DocumentId} signed successfully", document.Id);
@@ -197,7 +205,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
 
             await _documentEventRepository.CreateAsync(
                 DocumentEvent.Create(document.Id, command.TenantId, EventType.SentToSri,
-                    $"Sent to SRI. Accepted: {sendResult.IsAccepted}. Status: {sendResult.Status}."),
+                    $"Enviado al SRI. Aceptado: {sendResult.IsAccepted}. Estado: {sendResult.Status}."),
                 cancellationToken);
 
             if (!sendResult.IsAccepted)
@@ -206,7 +214,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
                 document.Reject(errorMsg);
 
                 await _documentEventRepository.CreateAsync(
-                    DocumentEvent.Create(document.Id, command.TenantId, EventType.Rejected, $"SRI rejected: {errorMsg}"),
+                    DocumentEvent.Create(document.Id, command.TenantId, EventType.Rejected, $"SRI rechazó el documento: {errorMsg}"),
                     cancellationToken);
 
                 _logger.LogWarning("Document {DocumentId} rejected by SRI: {Error}", document.Id, errorMsg);
@@ -226,7 +234,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
 
                         await _documentEventRepository.CreateAsync(
                             DocumentEvent.Create(document.Id, command.TenantId, EventType.Authorized,
-                                $"Authorized by SRI. Auth#: {authResult.AuthorizationNumber}."),
+                                $"Autorizado por SRI. N° autorización: {authResult.AuthorizationNumber}."),
                             cancellationToken);
 
                         _logger.LogInformation("Document {DocumentId} authorized by SRI", document.Id);
@@ -236,7 +244,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
                         {
                             await strategy.BuildRidePdfAsync(document, cancellationToken);
                             await _documentEventRepository.CreateAsync(
-                                DocumentEvent.Create(document.Id, command.TenantId, EventType.PdfGenerated, "RIDE PDF generated."),
+                                DocumentEvent.Create(document.Id, command.TenantId, EventType.PdfGenerated, "RIDE PDF generado."),
                                 cancellationToken);
                         }
                         catch (Exception ex)
@@ -251,7 +259,7 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
 
                         await _documentEventRepository.CreateAsync(
                             DocumentEvent.Create(document.Id, command.TenantId, EventType.RetryScheduled,
-                                "SRI accepted but not yet authorized. Retry scheduled."),
+                                "SRI aceptó el documento pero aún no está autorizado. Reintento programado."),
                             cancellationToken);
                     }
                 }
@@ -260,11 +268,11 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
                     _logger.LogError(ex, "SRI authorization check failed for document {DocumentId}: {Error}",
                         document.Id, ex.Message);
 
-                    document.MarkFailed($"SRI authorization check failed: {ex.Message}");
+                    document.MarkFailed($"Error al verificar la autorización en SRI: {ex.Message}");
 
                     await _documentEventRepository.CreateAsync(
                         DocumentEvent.Create(document.Id, command.TenantId, EventType.Failed,
-                            $"SRI authorization check failed: {ex.GetType().Name} — {ex.Message}"),
+                            $"Error al verificar la autorización en SRI: {ex.GetType().Name} — {ex.Message}"),
                         cancellationToken);
 
                     // Persist document with Failed status before re-throwing
@@ -282,11 +290,11 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
             _logger.LogError(ex, "SRI send failed for document {DocumentId}: {Error}",
                 document.Id, ex.Message);
 
-            document.MarkFailed($"SRI service error: {ex.Message}");
+            document.MarkFailed($"Error en el servicio SRI: {ex.Message}");
 
             await _documentEventRepository.CreateAsync(
                 DocumentEvent.Create(document.Id, command.TenantId, EventType.Failed,
-                    $"SRI send failed: {ex.GetType().Name} — {ex.Message}"),
+                    $"Error al enviar al SRI: {ex.GetType().Name} — {ex.Message}"),
                 cancellationToken);
 
             // Persist document with Failed status before re-throwing
@@ -335,12 +343,12 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         var endTag = "</claveAcceso>";
         var startIndex = xml.IndexOf(startTag, StringComparison.Ordinal);
         if (startIndex < 0)
-            throw new DocumentValidationException("Generated XML does not contain claveAcceso element.");
+            throw new DocumentValidationException("El XML generado no contiene el elemento claveAcceso.");
 
         startIndex += startTag.Length;
         var endIndex = xml.IndexOf(endTag, startIndex, StringComparison.Ordinal);
         if (endIndex < 0)
-            throw new DocumentValidationException("Generated XML has malformed claveAcceso element.");
+            throw new DocumentValidationException("El XML generado tiene un elemento claveAcceso malformado.");
 
         var accessKeyValue = xml[startIndex..endIndex];
         return new Domain.ValueObjects.AccessKey(accessKeyValue);

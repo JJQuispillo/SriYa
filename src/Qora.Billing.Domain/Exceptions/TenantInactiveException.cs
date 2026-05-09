@@ -5,7 +5,7 @@ public class TenantInactiveException : BillingDomainException
     public Guid TenantId { get; }
 
     public TenantInactiveException(Guid tenantId)
-        : base($"Tenant {tenantId} is inactive.")
+        : base($"El tenant {tenantId} se encuentra inactivo.")
     {
         TenantId = tenantId;
     }

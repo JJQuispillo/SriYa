@@ -74,6 +74,124 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.ToTable("api_keys", (string)null);
                 });
 
+            modelBuilder.Entity("Qora.Billing.Domain.Entities.Destinatario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CodEstabDestino")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("cod_estab_destino");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DirDestinatario")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("dir_destinatario");
+
+                    b.Property<string>("DocAduaneroUnico")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("doc_aduanero_unico");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("IdentificacionDestinatario")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("identificacion_destinatario");
+
+                    b.Property<string>("MotivoTraslado")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("motivo_traslado");
+
+                    b.Property<string>("RazonSocialDestinatario")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("razon_social_destinatario");
+
+                    b.Property<string>("Rise")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("rise");
+
+                    b.Property<string>("RucTransportista")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("ruc_transportista");
+
+                    b.Property<string>("RutaEntrega")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("ruta_entrega");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_document_destinatarios_document_id");
+
+                    b.ToTable("document_destinatarios", (string)null);
+                });
+
+            modelBuilder.Entity("Qora.Billing.Domain.Entities.DestinatarioItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("CantidadDetalle")
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("cantidad_detalle");
+
+                    b.Property<string>("CodigoInterno")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
+                        .HasColumnName("codigo_interno");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DescripcionDetalle")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("descripcion_detalle");
+
+                    b.Property<Guid>("DestinatarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("destinatario_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinatarioId")
+                        .HasDatabaseName("ix_document_destinatario_items_destinatario_id");
+
+                    b.ToTable("document_destinatario_items", (string)null);
+                });
+
             modelBuilder.Entity("Qora.Billing.Domain.Entities.Document", b =>
                 {
                     b.Property<Guid>("Id")
@@ -165,124 +283,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasDatabaseName("ix_documents_tenant_id_status");
 
                     b.ToTable("documents", (string)null);
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.Destinatario", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("DocumentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("document_id");
-
-                    b.Property<string>("IdentificacionDestinatario")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("identificacion_destinatario");
-
-                    b.Property<string>("RazonSocialDestinatario")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("razon_social_destinatario");
-
-                    b.Property<string>("DirDestinatario")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("dir_destinatario");
-
-                    b.Property<string>("MotivoTraslado")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("motivo_traslado");
-
-                    b.Property<string>("RutaEntrega")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("ruta_entrega");
-
-                    b.Property<string>("DocAduaneroUnico")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("doc_aduanero_unico");
-
-                    b.Property<string>("CodEstabDestino")
-                        .HasMaxLength(3)
-                        .HasColumnType("character varying(3)")
-                        .HasColumnName("cod_estab_destino");
-
-                    b.Property<string>("RucTransportista")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("character varying(13)")
-                        .HasColumnName("ruc_transportista");
-
-                    b.Property<string>("Rise")
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("rise");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentId")
-                        .HasDatabaseName("ix_document_destinatarios_document_id");
-
-                    b.ToTable("document_destinatarios", (string)null);
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.DestinatarioItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("DestinatarioId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("destinatario_id");
-
-                    b.Property<string>("CodigoInterno")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
-                        .HasColumnName("codigo_interno");
-
-                    b.Property<string>("DescripcionDetalle")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("descripcion_detalle");
-
-                    b.Property<decimal>("CantidadDetalle")
-                        .HasColumnType("decimal(18,6)")
-                        .HasColumnName("cantidad_detalle");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DestinatarioId")
-                        .HasDatabaseName("ix_document_destinatario_items_destinatario_id");
-
-                    b.ToTable("document_destinatario_items", (string)null);
                 });
 
             modelBuilder.Entity("Qora.Billing.Domain.Entities.DocumentEvent", b =>
@@ -460,6 +460,210 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.ToTable("electronic_signatures", (string)null);
                 });
 
+            modelBuilder.Entity("Qora.Billing.Domain.Entities.SriTaxCode", b =>
+                {
+                    b.Property<string>("TaxTypeCode")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("tax_type_code");
+
+                    b.Property<string>("PercentageCode")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("percentage_code");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(10, 4)
+                        .HasColumnType("numeric(10,4)")
+                        .HasColumnName("rate");
+
+                    b.HasKey("TaxTypeCode", "PercentageCode");
+
+                    b.ToTable("sri_tax_codes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "0",
+                            Description = "IVA 0%",
+                            IsActive = true,
+                            Rate = 0m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "2",
+                            Description = "IVA 12%",
+                            IsActive = true,
+                            Rate = 12m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "3",
+                            Description = "IVA 14% (histórico)",
+                            IsActive = false,
+                            Rate = 14m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "4",
+                            Description = "IVA 15%",
+                            IsActive = true,
+                            Rate = 15m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "5",
+                            Description = "IVA 5%",
+                            IsActive = true,
+                            Rate = 5m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "6",
+                            Description = "No Objeto de IVA",
+                            IsActive = true,
+                            Rate = 0m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "7",
+                            Description = "Exento de IVA",
+                            IsActive = true,
+                            Rate = 0m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "8",
+                            Description = "IVA 8% (histórico)",
+                            IsActive = false,
+                            Rate = 8m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "2",
+                            PercentageCode = "10",
+                            Description = "IVA 10% (histórico)",
+                            IsActive = false,
+                            Rate = 10m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "3",
+                            PercentageCode = "3011",
+                            Description = "ICE Cigarrillos",
+                            IsActive = true,
+                            Rate = 75m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "3",
+                            PercentageCode = "3023",
+                            Description = "ICE Cerveza (L)",
+                            IsActive = true,
+                            Rate = 0.15m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "3",
+                            PercentageCode = "3041",
+                            Description = "ICE Vehículos < $20k",
+                            IsActive = true,
+                            Rate = 35m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "3",
+                            PercentageCode = "3072",
+                            Description = "ICE Bebidas alcohólicas",
+                            IsActive = true,
+                            Rate = 9m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "5",
+                            PercentageCode = "5001",
+                            Description = "IRBPNR",
+                            IsActive = true,
+                            Rate = 0.02m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "6",
+                            PercentageCode = "6001",
+                            Description = "ISD 5%",
+                            IsActive = true,
+                            Rate = 5m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "1",
+                            PercentageCode = "303",
+                            Description = "Ret. Renta 1%",
+                            IsActive = true,
+                            Rate = 1m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "1",
+                            PercentageCode = "304",
+                            Description = "Ret. Renta 1.75%",
+                            IsActive = true,
+                            Rate = 1.75m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "1",
+                            PercentageCode = "312",
+                            Description = "Ret. Renta 2%",
+                            IsActive = true,
+                            Rate = 2m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "1",
+                            PercentageCode = "322",
+                            Description = "Ret. Renta 8%",
+                            IsActive = true,
+                            Rate = 8m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "1",
+                            PercentageCode = "332",
+                            Description = "Ret. Renta 10%",
+                            IsActive = true,
+                            Rate = 10m
+                        },
+                        new
+                        {
+                            TaxTypeCode = "1",
+                            PercentageCode = "343",
+                            Description = "Ret. Renta 30%",
+                            IsActive = true,
+                            Rate = 30m
+                        });
+                });
+
             modelBuilder.Entity("Qora.Billing.Domain.Entities.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -476,6 +680,18 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<bool>("EmailEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("email_enabled");
+
+                    b.Property<int>("EmailProvider")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("email_provider");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -488,6 +704,35 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasColumnType("character varying(13)")
                         .HasColumnName("ruc");
 
+                    b.Property<string>("SenderEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("sender_email");
+
+                    b.Property<string>("SenderName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("sender_name");
+
+                    b.Property<string>("SmtpHost")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("smtp_host");
+
+                    b.Property<string>("SmtpPassword")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("smtp_password");
+
+                    b.Property<int?>("SmtpPort")
+                        .HasColumnType("integer")
+                        .HasColumnName("smtp_port");
+
+                    b.Property<string>("SmtpUser")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("smtp_user");
+
                     b.Property<string>("TradeName")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)")
@@ -496,6 +741,12 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
+
+                    b.Property<bool>("UseSsl")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("use_ssl");
 
                     b.HasKey("Id");
 
@@ -547,6 +798,15 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.ToTable("usage_records", (string)null);
                 });
 
+            modelBuilder.Entity("Qora.Billing.Domain.Entities.ApiKey", b =>
+                {
+                    b.HasOne("Qora.Billing.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Qora.Billing.Domain.Entities.Destinatario", b =>
                 {
                     b.HasOne("Qora.Billing.Domain.Entities.Document", null)
@@ -561,15 +821,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.HasOne("Qora.Billing.Domain.Entities.Destinatario", null)
                         .WithMany("Items")
                         .HasForeignKey("DestinatarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.ApiKey", b =>
-                {
-                    b.HasOne("Qora.Billing.Domain.Entities.Tenant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

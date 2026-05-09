@@ -1,3 +1,4 @@
+using Qora.Billing.Domain.Enums;
 using Qora.Billing.Domain.Exceptions;
 using Qora.Billing.Domain.ValueObjects;
 
@@ -9,6 +10,17 @@ public class Tenant : BaseEntity
     public string BusinessName { get; private set; } = string.Empty;
     public string? TradeName { get; private set; }
     public bool IsActive { get; private set; }
+
+    // ── Email delivery settings ──────────────────────────────────────
+    public bool EmailEnabled { get; private set; } = false;
+    public EmailProvider EmailProvider { get; private set; } = EmailProvider.Qora;
+    public string? SmtpHost { get; private set; }
+    public int? SmtpPort { get; private set; }
+    public string? SmtpUser { get; private set; }
+    public string? SmtpPassword { get; private set; }
+    public bool UseSsl { get; private set; } = true;
+    public string? SenderEmail { get; private set; }
+    public string? SenderName { get; private set; }
 
     private Tenant() { } // EF Core
 
@@ -48,5 +60,32 @@ public class Tenant : BaseEntity
     {
         if (!IsActive)
             throw new TenantInactiveException(Id);
+    }
+
+    /// <summary>
+    /// Updates the tenant's email delivery configuration.
+    /// Pass null for SMTP fields to leave them unchanged when only toggling enabled/provider.
+    /// </summary>
+    public void ConfigureEmail(
+        bool emailEnabled,
+        EmailProvider emailProvider,
+        string? smtpHost = null,
+        int? smtpPort = null,
+        string? smtpUser = null,
+        string? smtpPassword = null,
+        bool useSsl = true,
+        string? senderEmail = null,
+        string? senderName = null)
+    {
+        EmailEnabled = emailEnabled;
+        EmailProvider = emailProvider;
+        SmtpHost = smtpHost;
+        SmtpPort = smtpPort;
+        SmtpUser = smtpUser;
+        if (smtpPassword != null) SmtpPassword = smtpPassword;
+        UseSsl = useSsl;
+        SenderEmail = senderEmail;
+        SenderName = senderName;
+        SetUpdatedAt();
     }
 }

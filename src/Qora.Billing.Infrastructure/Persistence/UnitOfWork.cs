@@ -22,7 +22,7 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_currentTransaction is not null)
         {
-            throw new InvalidOperationException("A transaction is already in progress.");
+            throw new InvalidOperationException("Ya hay una transacción en curso.");
         }
 
         _currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
@@ -32,7 +32,7 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_currentTransaction is null)
         {
-            throw new InvalidOperationException("No transaction in progress to commit.");
+            throw new InvalidOperationException("No hay ninguna transacción en curso para confirmar.");
         }
 
         try
@@ -55,7 +55,7 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_currentTransaction is null)
         {
-            throw new InvalidOperationException("No transaction in progress to rollback.");
+            throw new InvalidOperationException("No hay ninguna transacción en curso para revertir.");
         }
 
         try

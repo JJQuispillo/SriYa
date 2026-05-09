@@ -10,7 +10,7 @@ public class DocumentTypeNotSupportedException : BillingDomainException
     public DocumentType DocumentType { get; }
 
     public DocumentTypeNotSupportedException(DocumentType documentType)
-        : base($"Document type '{documentType}' is not supported or has no registered strategy.")
+        : base($"El tipo de documento '{documentType}' no está soportado o no tiene una estrategia registrada.")
     {
         DocumentType = documentType;
     }

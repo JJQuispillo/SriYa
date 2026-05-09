@@ -9,6 +9,7 @@ using Qora.Billing.Domain.Enums;
 using Qora.Billing.Domain.Exceptions;
 using Qora.Billing.Domain.Interfaces;
 using DomainDocumentType = Qora.Billing.Domain.Enums.DocumentType;
+using SriTaxCode = Qora.Billing.Domain.Entities.SriTaxCode;
 
 namespace Qora.Billing.UnitTests.Application.Commands;
 
@@ -19,11 +20,17 @@ public class ProcessDocumentCommandHandlerTests
     private readonly Mock<IElectronicSignatureRepository> _signatureRepo = new();
     private readonly Mock<IDocumentEventRepository> _eventRepo = new();
     private readonly Mock<IUsageRecordRepository> _usageRepo = new();
+    private readonly Mock<ISriTaxCodeRepository> _sriTaxCodeRepo = new();
     private readonly Mock<IDocumentTypeStrategy> _strategy = new();
 
     public ProcessDocumentCommandHandlerTests()
     {
         _strategy.Setup(s => s.DocumentType).Returns(DomainDocumentType.Factura);
+
+        // Default: return a valid SriTaxCode for IVA 15% (TaxCode="2", PercentageCode="4")
+        _sriTaxCodeRepo
+            .Setup(r => r.FindAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SriTaxCode.Create("2", "4", 15m, "IVA 15%"));
     }
     private readonly Mock<IDocumentSigner> _signer = new();
     private readonly Mock<ISriClient> _sriClient = new();
@@ -32,7 +39,8 @@ public class ProcessDocumentCommandHandlerTests
 
     private ProcessDocumentCommandHandler CreateHandler() => new(
         _tenantRepo.Object, _documentRepo.Object, _signatureRepo.Object,
-        _eventRepo.Object, _usageRepo.Object, new[] { _strategy.Object },
+        _eventRepo.Object, _usageRepo.Object, _sriTaxCodeRepo.Object,
+        new[] { _strategy.Object },
         _signer.Object, _sriClient.Object, _unitOfWork.Object, _logger.Object);
 
     private static Tenant CreateActiveTenant()

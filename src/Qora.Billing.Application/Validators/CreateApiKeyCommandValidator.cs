@@ -9,24 +9,24 @@ public class CreateApiKeyCommandValidator : AbstractValidator<CreateApiKeyComman
     {
         RuleFor(x => x.TenantId)
             .NotEmpty()
-            .WithMessage("TenantId is required.");
+            .WithMessage("El TenantId es requerido.");
 
         RuleFor(x => x.Request)
             .NotNull()
-            .WithMessage("Request body is required.");
+            .WithMessage("El cuerpo de la solicitud es requerido.");
 
         When(x => x.Request is not null, () =>
         {
             RuleFor(x => x.Request.Name)
                 .NotEmpty()
-                .WithMessage("API key name is required.")
+                .WithMessage("El nombre de la API key es requerido.")
                 .MaximumLength(100)
-                .WithMessage("API key name must not exceed 100 characters.");
+                .WithMessage("El nombre de la API key no debe exceder los 100 caracteres.");
 
             RuleFor(x => x.Request.ExpiresAt)
                 .GreaterThan(DateTime.UtcNow)
                 .When(x => x.Request.ExpiresAt.HasValue)
-                .WithMessage("Expiration date must be in the future.");
+                .WithMessage("La fecha de expiración debe ser en el futuro.");
         });
     }
 }

@@ -25,7 +25,7 @@ public static class DocumentTypeStrategyExtensions
         var strategy = strategies.FirstOrDefault(s => s.DocumentType == documentType);
         if (strategy is null)
             throw new InvalidOperationException(
-                $"No strategy registered for document type {documentType}");
+                $"No hay estrategia registrada para el tipo de documento {documentType}");
         return strategy;
     }
 }

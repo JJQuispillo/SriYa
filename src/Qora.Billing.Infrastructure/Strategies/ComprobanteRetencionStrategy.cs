@@ -130,7 +130,7 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
             if (string.IsNullOrWhiteSpace(item.SustentoDocumentType))
             {
                 throw new InvalidOperationException(
-                    $"DocumentItem '{item.Description}' is missing SustentoDocumentType required for ComprobanteRetencion.");
+                    $"El ítem '{item.Description}' no tiene el campo SustentoDocumentType requerido para ComprobanteRetencion.");
             }
         }
 

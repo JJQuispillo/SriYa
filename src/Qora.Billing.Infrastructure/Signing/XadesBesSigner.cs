@@ -24,7 +24,7 @@ public class XadesBesSigner : IDocumentSigner
         ArgumentNullException.ThrowIfNull(password);
 
         if (certificateData.Length == 0)
-            throw new ArgumentException("Certificate data cannot be empty.", nameof(certificateData));
+            throw new ArgumentException("Los datos del certificado no pueden estar vacíos.", nameof(certificateData));
 
         var signedXml = SignXml(xml, certificateData, password);
         return Task.FromResult(signedXml);
@@ -39,7 +39,7 @@ public class XadesBesSigner : IDocumentSigner
             X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
 
         var rsaKey = certificate.GetRSAPrivateKey()
-            ?? throw new InvalidOperationException("Certificate does not contain an RSA private key.");
+            ?? throw new InvalidOperationException("El certificado no contiene una clave privada RSA.");
 
         var signedXml = new SignedXml(xmlDoc)
         {

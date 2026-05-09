@@ -69,18 +69,18 @@ public class ProcessDocumentCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_InvalidIvaRate_ShouldFail()
+    public void Validate_InvalidTaxCode_ShouldFail()
     {
         var request = new CreateDocumentRequest(
             DomainDocumentType.Factura,
             new Dictionary<string, string> { { "ruc", "1792268071001" }, { "razonSocial", "Test" } },
             new Dictionary<string, string>(),
-            [new DocumentItemDto("P1", "Prod", 1, 5.00m, 0, 12m, "2", "2")]); // 12% is no longer valid
+            [new DocumentItemDto("P1", "Prod", 1, 5.00m, 0, 0m, "2", "99")]); // "2/99" does not exist in SRI table
 
         var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("IVA rate"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("no es válido según la tabla de códigos SRI"));
     }
 
     [Fact]
@@ -177,33 +177,51 @@ public class ProcessDocumentCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_RetencionItem_WithValidRetentionRate_Passes()
+    public void Validate_RetencionItem_WithValidTaxCode_Passes()
     {
-        // TaxRate=10 is in ValidRetencionRates {1, 1.75, 2, 8, 10, 30}
+        // TaxCode "1/303" (Ret. Renta 1%) is in the SRI reference table
         var command = CreateRetencionCommand(taxRate: 10m);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().NotContain(e => e.ErrorMessage.Contains("Retention rate"));
+        result.Errors.Should().NotContain(e => e.ErrorMessage.Contains("no es válido según la tabla de códigos SRI"));
     }
 
     [Fact]
-    public void Validate_RetencionItem_WithIvaRate_Fails()
+    public void Validate_RetencionItem_WithInvalidTaxCode_Fails()
     {
-        // TaxRate=15 is a valid IVA rate but NOT a valid retención rate
-        var command = CreateRetencionCommand(taxRate: 15m);
+        // TaxCode "1/999" does not exist in the SRI reference table
+        var request = new CreateDocumentRequest(
+            DomainDocumentType.ComprobanteRetencion,
+            new Dictionary<string, string> { { "ruc", "1792268071001" }, { "razonSocial", "Test Corp" } },
+            new Dictionary<string, string> { { "identificacion", "9999999999999" }, { "razonSocial", "Sujeto Retenido" } },
+            [new DocumentItemDto(
+                MainCode: "999",
+                Description: "Honorarios profesionales",
+                Quantity: 1,
+                UnitPrice: 100m,
+                Discount: 0,
+                TaxRate: 0m,
+                TaxCode: "1",
+                TaxPercentageCode: "999",
+                SustentoDocumentType: "01",
+                SustentoDocumentNumber: "001-001-000000001",
+                SustentoDocumentIssueDate: new DateTime(2024, 1, 10),
+                SustentoDocumentAuthNumber: "2401202401179226807100110010010000000991234567890")]);
+
+        var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("Retention rate") && e.ErrorMessage.Contains("15"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("no es válido según la tabla de códigos SRI"));
     }
 
     [Fact]
-    public void Validate_FacturaItem_WithIvaRate_Passes()
+    public void Validate_FacturaItem_WithValidTaxCode_Passes()
     {
-        // For Factura, TaxRate=15 is valid (ValidIvaRates = {0, 5, 15})
-        var command = CreateValidCommand(); // uses Factura + TaxRate=15
+        // For Factura, TaxCode "2/4" (IVA 15%) is valid
+        var command = CreateValidCommand(); // uses Factura + TaxCode "2"/"4"
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().NotContain(e => e.ErrorMessage.Contains("IVA rate"));
+        result.Errors.Should().NotContain(e => e.ErrorMessage.Contains("no es válido según la tabla de códigos SRI"));
     }
 
     [Fact]

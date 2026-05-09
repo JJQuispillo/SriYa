@@ -11,24 +11,24 @@ public class UploadCertificateCommandValidator : AbstractValidator<UploadCertifi
     {
         RuleFor(x => x.TenantId)
             .NotEmpty()
-            .WithMessage("TenantId is required.");
+            .WithMessage("El TenantId es requerido.");
 
         RuleFor(x => x.CertificateData)
             .NotNull()
-            .WithMessage("Certificate data is required.")
+            .WithMessage("Los datos del certificado son requeridos.")
             .Must(data => data is { Length: > 0 })
-            .WithMessage("Certificate data must not be empty.")
+            .WithMessage("Los datos del certificado no pueden estar vacíos.")
             .Must(data => data is null || data.Length <= MaxCertificateSizeBytes)
-            .WithMessage($"Certificate file must not exceed {MaxCertificateSizeBytes / (1024 * 1024)} MB.");
+            .WithMessage($"El archivo del certificado no debe exceder los {MaxCertificateSizeBytes / (1024 * 1024)} MB.");
 
         RuleFor(x => x.Password)
             .NotEmpty()
-            .WithMessage("Certificate password is required.");
+            .WithMessage("La contraseña del certificado es requerida.");
 
         RuleFor(x => x.OwnerName)
             .NotEmpty()
-            .WithMessage("Owner name is required.")
+            .WithMessage("El nombre del propietario es requerido.")
             .MaximumLength(200)
-            .WithMessage("Owner name must not exceed 200 characters.");
+            .WithMessage("El nombre del propietario no debe exceder los 200 caracteres.");
     }
 }

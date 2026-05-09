@@ -13,24 +13,24 @@ public sealed record Ruc
     public Ruc(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidRucException("RUC cannot be empty.");
+            throw new InvalidRucException("El RUC no puede estar vacío.");
 
         if (value.Length != 13)
-            throw new InvalidRucException($"RUC must be exactly 13 digits, got {value.Length}.");
+            throw new InvalidRucException($"El RUC debe tener exactamente 13 dígitos, se recibieron {value.Length}.");
 
         if (!value.All(char.IsDigit))
-            throw new InvalidRucException("RUC must contain only digits.");
+            throw new InvalidRucException("El RUC debe contener solo dígitos.");
 
         if (!value.EndsWith("001"))
-            throw new InvalidRucException("RUC must end with '001' for the establishment code.");
+            throw new InvalidRucException("El RUC debe terminar en '001' como código de establecimiento.");
 
         var provinceCode = int.Parse(value[..2]);
         if (provinceCode is not ((>= 1 and <= 24) or 30))
-            throw new InvalidRucException($"Invalid province code: {provinceCode}. Must be 01-24 or 30.");
+            throw new InvalidRucException($"Código de provincia inválido: {provinceCode}. Debe ser 01-24 o 30.");
 
         var thirdDigit = value[2] - '0';
         if (thirdDigit > 9)
-            throw new InvalidRucException($"Invalid third digit: {thirdDigit}.");
+            throw new InvalidRucException($"Tercer dígito inválido: {thirdDigit}.");
 
         Value = value;
     }

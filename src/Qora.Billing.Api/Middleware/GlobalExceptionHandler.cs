@@ -28,7 +28,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             DocumentValidationException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status422UnprocessableEntity,
-                Title = "Document Validation Failed",
+                Title = "Validación del documento fallida",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Extensions = { ["errors"] = ex.Errors }
@@ -37,8 +37,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             ValidationException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status422UnprocessableEntity,
-                Title = "Validation Failed",
-                Detail = "One or more validation errors occurred.",
+                Title = "Errores de validación",
+                Detail = "Se produjeron uno o más errores de validación.",
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Extensions =
                 {
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             CertificateExpiredException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status422UnprocessableEntity,
-                Title = "Certificate Expired",
+                Title = "Certificado vencido",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
             },
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             TenantInactiveException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status403Forbidden,
-                Title = "Tenant Inactive",
+                Title = "Tenant inactivo",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
             },
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             InvalidAccessKeyException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Invalid Access Key",
+                Title = "Clave de acceso inválida",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
             },
@@ -75,7 +75,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             InvalidRucException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Invalid RUC",
+                Title = "RUC inválido",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
             },
@@ -83,7 +83,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             BillingDomainException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Billing Error",
+                Title = "Error de facturación",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
             },
@@ -91,7 +91,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             KeyNotFoundException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = "Resource Not Found",
+                Title = "Recurso no encontrado",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4"
             },
@@ -99,7 +99,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             UnauthorizedAccessException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status401Unauthorized,
-                Title = "Unauthorized",
+                Title = "No autorizado",
                 Detail = ex.Message,
                 Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
             },
@@ -107,8 +107,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             HttpRequestException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status502BadGateway,
-                Title = "SRI Service Unavailable",
-                Detail = $"The SRI external service is unreachable or returned an error: {ex.Message}",
+                Title = "Servicio SRI no disponible",
+                Detail = $"El servicio externo del SRI no está disponible o devolvió un error: {ex.Message}",
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.3",
                 Extensions = { ["sriError"] = ex.Message }
             },
@@ -116,17 +116,17 @@ public class GlobalExceptionHandler : IExceptionHandler
             TaskCanceledException ex when ex.InnerException is TimeoutException || !cancellationToken.IsCancellationRequested => new ProblemDetails
             {
                 Status = StatusCodes.Status504GatewayTimeout,
-                Title = "SRI Service Timeout",
-                Detail = "The request to the SRI external service timed out.",
+                Title = "Tiempo de espera agotado con SRI",
+                Detail = "La solicitud al servicio externo del SRI superó el tiempo de espera.",
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.5",
-                Extensions = { ["sriError"] = "Request timed out waiting for SRI response." }
+                Extensions = { ["sriError"] = "Se agotó el tiempo de espera de la respuesta del SRI." }
             },
 
             _ => new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,
-                Title = "Internal Server Error",
-                Detail = "An unexpected error occurred. Please try again later.",
+                Title = "Error interno del servidor",
+                Detail = "Ocurrió un error inesperado. Por favor intente nuevamente más tarde.",
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
             }
         };

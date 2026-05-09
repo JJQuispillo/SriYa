@@ -9,23 +9,23 @@ public class CreateTenantCommandValidator : AbstractValidator<CreateTenantComman
     {
         RuleFor(x => x.Request)
             .NotNull()
-            .WithMessage("Request body is required.");
+            .WithMessage("El cuerpo de la solicitud es requerido.");
 
         When(x => x.Request is not null, () =>
         {
             RuleFor(x => x.Request.Ruc)
                 .NotEmpty()
-                .WithMessage("RUC is required.")
+                .WithMessage("El RUC es requerido.")
                 .Length(13)
-                .WithMessage("RUC must be exactly 13 characters.")
+                .WithMessage("El RUC debe tener exactamente 13 caracteres.")
                 .Matches(@"^\d{13}$")
-                .WithMessage("RUC must contain only digits.");
+                .WithMessage("El RUC debe contener solo dígitos.");
 
             RuleFor(x => x.Request.BusinessName)
                 .NotEmpty()
-                .WithMessage("Business name is required.")
+                .WithMessage("La razón social es requerida.")
                 .MaximumLength(300)
-                .WithMessage("Business name must not exceed 300 characters.");
+                .WithMessage("La razón social no debe exceder los 300 caracteres.");
         });
     }
 }

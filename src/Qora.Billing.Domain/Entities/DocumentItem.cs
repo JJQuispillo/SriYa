@@ -43,11 +43,11 @@ public class DocumentItem
         string? sustentoDocumentAuthNumber = null)
     {
         if (quantity <= 0)
-            throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
+            throw new ArgumentException("La cantidad debe ser mayor a cero.", nameof(quantity));
         if (unitPrice < 0)
-            throw new ArgumentException("Unit price cannot be negative.", nameof(unitPrice));
+            throw new ArgumentException("El precio unitario no puede ser negativo.", nameof(unitPrice));
         if (discount < 0)
-            throw new ArgumentException("Discount cannot be negative.", nameof(discount));
+            throw new ArgumentException("El descuento no puede ser negativo.", nameof(discount));
 
         return new DocumentItem
         {

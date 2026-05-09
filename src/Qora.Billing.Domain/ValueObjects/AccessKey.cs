@@ -12,16 +12,16 @@ public sealed record AccessKey
     public AccessKey(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidAccessKeyException("Access key cannot be empty.");
+            throw new InvalidAccessKeyException("La clave de acceso no puede estar vacía.");
 
         if (value.Length != 49)
-            throw new InvalidAccessKeyException($"Access key must be exactly 49 digits, got {value.Length}.");
+            throw new InvalidAccessKeyException($"La clave de acceso debe tener exactamente 49 dígitos, se recibieron {value.Length}.");
 
         if (!value.All(char.IsDigit))
-            throw new InvalidAccessKeyException("Access key must contain only digits.");
+            throw new InvalidAccessKeyException("La clave de acceso debe contener solo dígitos.");
 
         if (!IsValidMod11(value))
-            throw new InvalidAccessKeyException("Access key has an invalid Mod11 check digit.");
+            throw new InvalidAccessKeyException("La clave de acceso tiene un dígito verificador Mod11 inválido.");
 
         Value = value;
     }

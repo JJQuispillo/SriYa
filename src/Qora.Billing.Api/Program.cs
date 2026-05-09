@@ -182,6 +182,7 @@ try
     app.MapCertificateEndpoints();
     app.MapApiKeyEndpoints();
     app.MapUsageEndpoints();
+    app.MapEmailEndpoints();
     app.MapHealthEndpoints();
 
     app.Run();

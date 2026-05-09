@@ -20,7 +20,7 @@ public class DestinatarioItem : BaseEntity
         decimal cantidadDetalle)
     {
         if (cantidadDetalle <= 0)
-            throw new ArgumentException("CantidadDetalle must be greater than zero.", nameof(cantidadDetalle));
+            throw new ArgumentException("La cantidad detalle debe ser mayor a cero.", nameof(cantidadDetalle));
 
         return new DestinatarioItem
         {

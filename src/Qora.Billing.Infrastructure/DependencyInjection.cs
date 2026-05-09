@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Qora.Billing.Application.Settings;
 using Qora.Billing.Domain.Interfaces;
 using Qora.Billing.Infrastructure.BackgroundServices;
+using Qora.Billing.Infrastructure.Email;
 using Qora.Billing.Infrastructure.Pdf;
 using Qora.Billing.Infrastructure.Persistence;
 using Qora.Billing.Infrastructure.Persistence.Repositories;
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IElectronicSignatureRepository, ElectronicSignatureRepository>();
         services.AddScoped<IUsageRecordRepository, UsageRecordRepository>();
         services.AddScoped<IDocumentEventRepository, DocumentEventRepository>();
+        services.AddScoped<ISriTaxCodeRepository, SriTaxCodeRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // XML builders (concrete singleton registrations, one per document type)
@@ -45,6 +48,9 @@ public static class DependencyInjection
         services.AddSingleton<LiquidacionCompraXmlBuilder>();
         services.AddSingleton<GuiaRemisionXmlBuilder>();
         services.AddSingleton<ComprobanteRetencionXmlBuilder>();
+
+        // IXmlGenerator interface mapping (used by FacturaStrategy)
+        services.AddSingleton<IXmlGenerator, FacturaXmlBuilder>();
 
         // Document signing
         services.AddSingleton<IDocumentSigner, XadesBesSigner>();
@@ -66,6 +72,12 @@ public static class DependencyInjection
 
         // PDF / RIDE generation
         services.AddPdfServices();
+
+        // Email delivery
+        services.Configure<QoraEmailSettings>(configuration.GetSection(QoraEmailSettings.SectionName));
+        services.AddScoped<QoraEmailProvider>();
+        services.AddScoped<CustomEmailProvider>();
+        services.AddScoped<IEmailService, SmtpEmailService>();
 
         return services;
     }

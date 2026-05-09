@@ -47,16 +47,16 @@ public static class CertificateEndpoints
     {
         // Validate file presence
         if (certificate is null || certificate.Length == 0)
-            return TypedResults.BadRequest("Certificate file is required.");
+            return TypedResults.BadRequest("El archivo del certificado es requerido.");
 
         // Validate file extension
         var extension = Path.GetExtension(certificate.FileName)?.ToLowerInvariant();
         if (string.IsNullOrEmpty(extension) || !AllowedExtensions.Contains(extension))
-            return TypedResults.BadRequest("Only .p12 and .pfx files are accepted.");
+            return TypedResults.BadRequest("Solo se aceptan archivos .p12 y .pfx.");
 
         // Validate file size
         if (certificate.Length > MaxFileSizeBytes)
-            return TypedResults.BadRequest($"Certificate file must not exceed {MaxFileSizeBytes / (1024 * 1024)} MB.");
+            return TypedResults.BadRequest($"El archivo del certificado no debe exceder los {MaxFileSizeBytes / (1024 * 1024)} MB.");
 
         // Read file bytes
         using var memoryStream = new MemoryStream();
@@ -82,6 +82,6 @@ public static class CertificateEndpoints
     private static Guid GetRequiredTenantId(ITenantContext tenantContext)
     {
         return tenantContext.TenantId
-            ?? throw new UnauthorizedAccessException("Tenant context is not set.");
+            ?? throw new UnauthorizedAccessException("El contexto del tenant no está configurado.");
     }
 }

@@ -19,7 +19,7 @@ public class NotaDebitoXmlBuilder : IXmlGenerator
     public Task<string> GenerateXmlAsync(Document document, CancellationToken cancellationToken = default)
     {
         if (document.DocumentType != DocumentType.NotaDebito)
-            throw new DocumentValidationException($"NotaDebitoXmlBuilder only supports NotaDebito documents, got {document.DocumentType}.");
+            throw new DocumentValidationException($"NotaDebitoXmlBuilder solo soporta documentos de tipo NotaDebito, se recibió {document.DocumentType}.");
 
         var xml = BuildNotaDebitoXml(document);
         return Task.FromResult(xml);
@@ -212,7 +212,7 @@ public class NotaDebitoXmlBuilder : IXmlGenerator
     private static string GetRequiredValue(Dictionary<string, string> dict, string key)
     {
         if (!dict.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
-            throw new DocumentValidationException($"Required field '{key}' is missing or empty.");
+            throw new DocumentValidationException($"El campo requerido '{key}' está vacío o ausente.");
 
         return value;
     }

@@ -20,7 +20,7 @@ public class UpdateTenantCommandHandler : IRequestHandler<UpdateTenantCommand, T
     public async Task<TenantResponse> Handle(UpdateTenantCommand command, CancellationToken cancellationToken)
     {
         var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, cancellationToken)
-            ?? throw new BillingDomainException($"Tenant {command.TenantId} not found.");
+            ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
 
         tenant.Update(command.Request.BusinessName, command.Request.TradeName);
 

@@ -26,16 +26,16 @@ public class VoidDocumentCommandHandler : IRequestHandler<VoidDocumentCommand, D
     public async Task<DocumentResponse> Handle(VoidDocumentCommand command, CancellationToken cancellationToken)
     {
         var document = await _documentRepository.GetByIdAsync(command.DocumentId, cancellationToken)
-            ?? throw new BillingDomainException($"Document {command.DocumentId} not found.");
+            ?? throw new BillingDomainException($"Documento {command.DocumentId} no encontrado.");
 
         if (document.TenantId != command.TenantId)
-            throw new BillingDomainException($"Document {command.DocumentId} does not belong to tenant {command.TenantId}.");
+            throw new BillingDomainException($"El documento {command.DocumentId} no pertenece al tenant {command.TenantId}.");
 
         document.Void(command.Reason);
 
         await _documentRepository.UpdateAsync(document, cancellationToken);
         await _documentEventRepository.CreateAsync(
-            DocumentEvent.Create(document.Id, command.TenantId, EventType.Voided, $"Document voided: {command.Reason}"),
+            DocumentEvent.Create(document.Id, command.TenantId, EventType.Voided, $"Documento anulado: {command.Reason}"),
             cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

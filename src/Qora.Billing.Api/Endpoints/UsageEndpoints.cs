@@ -40,6 +40,6 @@ public static class UsageEndpoints
     private static Guid GetRequiredTenantId(ITenantContext tenantContext)
     {
         return tenantContext.TenantId
-            ?? throw new UnauthorizedAccessException("Tenant context is not set.");
+            ?? throw new UnauthorizedAccessException("El contexto del tenant no está configurado.");
     }
 }

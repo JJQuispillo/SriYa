@@ -257,7 +257,7 @@ public class LiquidacionCompraXmlBuilder : IXmlGenerator
     private static string GetRequiredValue(Dictionary<string, string> dict, string key)
     {
         if (!dict.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
-            throw new DocumentValidationException($"Required field '{key}' is missing or empty.");
+            throw new DocumentValidationException($"El campo requerido '{key}' está vacío o ausente.");
 
         return value;
     }

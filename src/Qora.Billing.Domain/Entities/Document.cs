@@ -103,7 +103,7 @@ public class Document : BaseEntity
     {
         if (Status is not (DocumentStatus.SentToSri or DocumentStatus.PendingRetry))
             throw new DocumentValidationException(
-                $"Cannot authorize document in status {Status}. Must be SentToSri or PendingRetry.");
+                $"No se puede autorizar el documento en estado {Status}. Debe estar en SentToSri o PendingRetry.");
         SriAuthorizationNumber = authorizationNumber ?? throw new ArgumentNullException(nameof(authorizationNumber));
         SriAuthorizationDate = authorizationDate;
         Status = DocumentStatus.Authorized;
@@ -117,7 +117,7 @@ public class Document : BaseEntity
     {
         if (Status is not (DocumentStatus.SentToSri or DocumentStatus.PendingRetry))
             throw new DocumentValidationException(
-                $"Cannot reject document in status {Status}. Must be SentToSri or PendingRetry.");
+                $"No se puede rechazar el documento en estado {Status}. Debe estar en SentToSri o PendingRetry.");
 
         ErrorMessage = errorMessage;
         Status = DocumentStatus.Rejected;
@@ -131,7 +131,7 @@ public class Document : BaseEntity
     {
         if (Status is not (DocumentStatus.SentToSri or DocumentStatus.Rejected))
             throw new DocumentValidationException(
-                $"Cannot schedule retry for document in status {Status}.");
+                $"No se puede programar un reintento para el documento en estado {Status}.");
 
         RetryCount++;
         NextRetryAt = nextRetryAt;
@@ -151,7 +151,7 @@ public class Document : BaseEntity
     {
         if (Status is not DocumentStatus.Authorized)
             throw new DocumentValidationException(
-                $"Cannot void document in status {Status}. Must be Authorized.");
+                $"No se puede anular el documento en estado {Status}. Debe estar Autorizado.");
 
         Status = DocumentStatus.Voided;
         ErrorMessage = reason;
@@ -185,6 +185,6 @@ public class Document : BaseEntity
     {
         if (Status != expected)
             throw new DocumentValidationException(
-                $"Document is in status {Status}, expected {expected}.");
+                $"El documento está en estado {Status}, se esperaba {expected}.");
     }
 }

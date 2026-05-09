@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Qora.Billing.Domain.Entities;
+using Qora.Billing.Domain.Enums;
 using Qora.Billing.Domain.ValueObjects;
+using Qora.Billing.Infrastructure.Persistence.Converters;
 
 namespace Qora.Billing.Infrastructure.Persistence.Configurations;
 
-public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
+public class TenantConfiguration(string encryptionKey) : IEntityTypeConfiguration<Tenant>
 {
     public void Configure(EntityTypeBuilder<Tenant> builder)
     {
@@ -66,6 +68,46 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasIndex(t => t.Ruc)
             .IsUnique()
             .HasDatabaseName("ix_tenants_ruc");
+
+        // ── Email delivery settings ──────────────────────────────────
+        builder.Property(t => t.EmailEnabled)
+            .HasColumnName("email_enabled")
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(t => t.EmailProvider)
+            .HasColumnName("email_provider")
+            .HasDefaultValue(EmailProvider.Qora)
+            .IsRequired();
+
+        builder.Property(t => t.SmtpHost)
+            .HasColumnName("smtp_host")
+            .HasMaxLength(255);
+
+        builder.Property(t => t.SmtpPort)
+            .HasColumnName("smtp_port");
+
+        builder.Property(t => t.SmtpUser)
+            .HasColumnName("smtp_user")
+            .HasMaxLength(255);
+
+        builder.Property(t => t.SmtpPassword)
+            .HasColumnName("smtp_password")
+            .HasMaxLength(512)
+            .HasConversion(new EncryptedStringConverter(encryptionKey));
+
+        builder.Property(t => t.UseSsl)
+            .HasColumnName("use_ssl")
+            .HasDefaultValue(true)
+            .IsRequired();
+
+        builder.Property(t => t.SenderEmail)
+            .HasColumnName("sender_email")
+            .HasMaxLength(255);
+
+        builder.Property(t => t.SenderName)
+            .HasColumnName("sender_name")
+            .HasMaxLength(255);
 
         // Ignore domain events collection
         builder.Ignore(t => t.DomainEvents);

@@ -19,8 +19,7 @@ RUN dotnet restore src/Qora.Billing.Api/Qora.Billing.Api.csproj
 FROM restore AS build
 COPY src/ src/
 RUN dotnet build src/Qora.Billing.Api/Qora.Billing.Api.csproj \
-    -c Release \
-    --no-restore
+    -c Release
 
 # Stage 3: Publish
 FROM build AS publish
@@ -30,7 +29,7 @@ RUN dotnet publish src/Qora.Billing.Api/Qora.Billing.Api.csproj \
     --no-build
 
 # Stage 4: Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
 LABEL maintainer="Qora Team <dev@qora.app>"
 LABEL org.opencontainers.image.title="Qora Billing API"
@@ -39,13 +38,13 @@ LABEL org.opencontainers.image.version="1.0.0"
 LABEL org.opencontainers.image.source="https://github.com/qora/billing"
 
 # Install curl for health checks, then clean up
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Create non-root user
 RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 -G appgroup appuser
+    adduser --system --uid 1001 --ingroup appgroup --no-create-home appuser
 
 COPY --from=publish /app/publish .
 

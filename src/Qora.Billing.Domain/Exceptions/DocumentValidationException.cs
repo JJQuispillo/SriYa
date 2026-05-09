@@ -10,7 +10,7 @@ public class DocumentValidationException : BillingDomainException
     }
 
     public DocumentValidationException(IEnumerable<string> errors)
-        : base($"Document validation failed: {string.Join("; ", errors)}")
+        : base($"La validación del documento falló: {string.Join("; ", errors)}")
     {
         Errors = errors.ToList().AsReadOnly();
     }

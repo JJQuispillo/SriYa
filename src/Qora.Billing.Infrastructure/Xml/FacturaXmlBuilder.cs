@@ -17,7 +17,7 @@ public class FacturaXmlBuilder : IXmlGenerator
     public Task<string> GenerateXmlAsync(Document document, CancellationToken cancellationToken = default)
     {
         if (document.DocumentType != DocumentType.Factura)
-            throw new DocumentValidationException($"FacturaXmlBuilder only supports Factura documents, got {document.DocumentType}.");
+            throw new DocumentValidationException($"FacturaXmlBuilder solo soporta documentos de tipo Factura, se recibió {document.DocumentType}.");
 
         var xml = BuildFacturaXml(document);
         return Task.FromResult(xml);
@@ -242,7 +242,7 @@ public class FacturaXmlBuilder : IXmlGenerator
     private static string GetRequiredValue(Dictionary<string, string> dict, string key)
     {
         if (!dict.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
-            throw new DocumentValidationException($"Required field '{key}' is missing or empty.");
+            throw new DocumentValidationException($"El campo requerido '{key}' está vacío o ausente.");
 
         return value;
     }

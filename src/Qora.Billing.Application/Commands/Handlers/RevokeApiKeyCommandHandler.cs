@@ -21,7 +21,7 @@ public class RevokeApiKeyCommandHandler : IRequestHandler<RevokeApiKeyCommand, b
         var apiKey = keys.FirstOrDefault(k => k.Id == command.ApiKeyId);
 
         if (apiKey is null)
-            throw new BillingDomainException($"API key {command.ApiKeyId} not found for tenant {command.TenantId}.");
+            throw new BillingDomainException($"API key {command.ApiKeyId} no encontrada para el tenant {command.TenantId}.");
 
         apiKey.Deactivate();
         await _apiKeyRepository.UpdateAsync(apiKey, cancellationToken);
