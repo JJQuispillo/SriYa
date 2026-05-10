@@ -30,7 +30,24 @@ public class SriConfiguration
     public string AutorizacionUrl { get; set; } = string.Empty;
 
     /// <summary>
+    /// Production URL for the Recepcion (validarComprobante) service.
+    /// https://cel.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline
+    /// </summary>
+    public string RecepcionUrlProduccion { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Production URL for the Autorizacion (autorizacionComprobante) service.
+    /// https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline
+    /// </summary>
+    public string AutorizacionUrlProduccion { get; set; } = string.Empty;
+
+    /// <summary>
     /// HTTP request timeout in seconds. Default: 30.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// Maximum number of retry attempts for transient SRI errors. Default: 3.
+    /// </summary>
+    public int MaxRetries { get; set; } = 3;
 }

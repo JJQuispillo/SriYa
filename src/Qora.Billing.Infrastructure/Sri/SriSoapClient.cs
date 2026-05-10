@@ -2,6 +2,7 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Qora.Billing.Domain.Enums;
 using Qora.Billing.Domain.Interfaces;
 
 namespace Qora.Billing.Infrastructure.Sri;
@@ -43,8 +44,12 @@ public class SriSoapClient : ISriClient
 
         _logger.LogInformation("Sending document to SRI recepcion endpoint");
 
+        var recepcionUrl = _config.Environment == EnvironmentType.Production
+            ? _config.RecepcionUrlProduccion
+            : _config.RecepcionUrl;
+
         var responseXml = await SendSoapRequestAsync(
-            _config.RecepcionUrl,
+            recepcionUrl,
             soapEnvelope,
             "validarComprobante",
             cancellationToken);
@@ -65,8 +70,12 @@ public class SriSoapClient : ISriClient
         _logger.LogInformation("Checking authorization for access key {AccessKeyPrefix}...",
             accessKey.Length > 10 ? accessKey[..10] : accessKey);
 
+        var autorizacionUrl = _config.Environment == EnvironmentType.Production
+            ? _config.AutorizacionUrlProduccion
+            : _config.AutorizacionUrl;
+
         var responseXml = await SendSoapRequestAsync(
-            _config.AutorizacionUrl,
+            autorizacionUrl,
             soapEnvelope,
             "autorizacionComprobante",
             cancellationToken);

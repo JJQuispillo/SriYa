@@ -5,15 +5,16 @@ using System.Text;
 namespace Qora.Billing.Infrastructure.Persistence.Converters;
 
 /// <summary>
-/// EF Core value converter that transparently AES-256-encrypts string columns at rest.
+/// EF Core value converter that transparently AES-256-encrypts byte[] columns at rest,
+/// storing the result as Base64 text.
 /// Format: [16-byte salt][16-byte IV][ciphertext] encoded as Base64.
 /// Key derivation uses HKDF-SHA256 with a per-value random salt for security.
 /// </summary>
-public class EncryptedStringConverter(string encryptionKey) : ValueConverter<string?, string?>(
+public class EncryptedBytesConverter(string encryptionKey) : ValueConverter<byte[]?, string?>(
     v => v == null ? null : Encrypt(v, encryptionKey),
     v => v == null ? null : Decrypt(v, encryptionKey))
 {
-    private static string Encrypt(string plainText, string key)
+    private static string Encrypt(byte[] plainBytes, string key)
     {
         // Generate random 16-byte salt for HKDF key derivation
         var salt = RandomNumberGenerator.GetBytes(16);
@@ -23,7 +24,6 @@ public class EncryptedStringConverter(string encryptionKey) : ValueConverter<str
         aes.GenerateIV();
 
         using var encryptor = aes.CreateEncryptor();
-        var plainBytes = Encoding.UTF8.GetBytes(plainText);
         var encryptedBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
 
         // Format: [16-byte salt][16-byte IV][ciphertext]
@@ -35,7 +35,7 @@ public class EncryptedStringConverter(string encryptionKey) : ValueConverter<str
         return Convert.ToBase64String(result);
     }
 
-    private static string Decrypt(string cipherText, string key)
+    private static byte[] Decrypt(string cipherText, string key)
     {
         var cipherBytes = Convert.FromBase64String(cipherText);
 
@@ -55,16 +55,14 @@ public class EncryptedStringConverter(string encryptionKey) : ValueConverter<str
         aes.IV = iv;
 
         using var decryptor = aes.CreateDecryptor();
-        var resultBytes = decryptor.TransformFinalBlock(encrypted, 0, encrypted.Length);
-
-        return Encoding.UTF8.GetString(resultBytes);
+        return decryptor.TransformFinalBlock(encrypted, 0, encrypted.Length);
     }
 
-    /// <summary>Encrypt a non-nullable string. Used by non-nullable property configs.</summary>
-    internal static string EncryptValue(string plainText, string key) => Encrypt(plainText, key);
+    /// <summary>Encrypt non-nullable bytes. Used by non-nullable property configs.</summary>
+    internal static string EncryptValue(byte[] plainBytes, string key) => Encrypt(plainBytes, key);
 
-    /// <summary>Decrypt to a non-nullable string. Used by non-nullable property configs.</summary>
-    internal static string DecryptValue(string cipherText, string key) => Decrypt(cipherText, key);
+    /// <summary>Decrypt to non-nullable bytes. Used by non-nullable property configs.</summary>
+    internal static byte[] DecryptValue(string cipherText, string key) => Decrypt(cipherText, key);
 
     /// <summary>
     /// Derives a 32-byte AES key from the master key and a per-value salt using HKDF-SHA256.

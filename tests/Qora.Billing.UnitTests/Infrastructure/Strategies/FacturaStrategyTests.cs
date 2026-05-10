@@ -87,17 +87,17 @@ public class FacturaStrategyTests
     [Fact]
     public async Task ValidateDocumentAsync_WithInvalidIvaRate_ShouldReturnError()
     {
-        var doc = CreateValidFactura(taxRate: 12m); // 12% is not valid in 2026
+        var doc = CreateValidFactura(taxRate: 8m); // 8% is not a valid SRI rate
 
         var errors = await _strategy.ValidateDocumentAsync(doc);
 
-        errors.Should().Contain(e => e.Contains("invalid IVA rate") && e.Contains("12"));
+        errors.Should().Contain(e => e.Contains("invalid IVA rate") && e.Contains("8"));
     }
 
     [Fact]
     public async Task ValidateDocumentAsync_WithValidIvaRates_ShouldReturnNoErrors()
     {
-        // 0%, 5%, 15% are all valid
+        // 0%, 5%, 12%, 15% are all valid
         var doc = CreateValidFactura(taxRate: 0m);
         var errors0 = await _strategy.ValidateDocumentAsync(doc);
         errors0.Should().BeEmpty();
@@ -105,6 +105,10 @@ public class FacturaStrategyTests
         doc = CreateValidFactura(taxRate: 5m);
         var errors5 = await _strategy.ValidateDocumentAsync(doc);
         errors5.Should().BeEmpty();
+
+        doc = CreateValidFactura(taxRate: 12m);
+        var errors12 = await _strategy.ValidateDocumentAsync(doc);
+        errors12.Should().BeEmpty();
 
         doc = CreateValidFactura(taxRate: 15m);
         var errors15 = await _strategy.ValidateDocumentAsync(doc);

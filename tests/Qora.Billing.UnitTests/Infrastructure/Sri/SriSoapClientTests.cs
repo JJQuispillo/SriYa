@@ -1,4 +1,10 @@
+using System.Net;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Moq;
+using Moq.Protected;
+using Qora.Billing.Domain.Enums;
 using Qora.Billing.Infrastructure.Sri;
 
 namespace Qora.Billing.UnitTests.Infrastructure.Sri;
@@ -235,5 +241,156 @@ public class SriSoapClientTests
         var result = SriSoapClient.ParseRecepcionResponse(responseXml);
 
         result.Messages.Should().HaveCount(2);
+    }
+
+    // URL selection tests
+    private static (SriSoapClient client, Mock<HttpMessageHandler> handlerMock) CreateClientWithHandler(
+        SriConfiguration config, string responseXml, HttpStatusCode statusCode = HttpStatusCode.OK)
+    {
+        var handlerMock = new Mock<HttpMessageHandler>();
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = statusCode,
+                Content = new StringContent(responseXml)
+            });
+
+        var httpClient = new HttpClient(handlerMock.Object);
+        var options = Options.Create(config);
+        var logger = NullLogger<SriSoapClient>.Instance;
+        var client = new SriSoapClient(httpClient, options, logger);
+        return (client, handlerMock);
+    }
+
+    private static string RecepcionRecibidaResponse => """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <ns2:validarComprobanteResponse xmlns:ns2="http://ec.gob.sri.ws.recepcion">
+                    <RespuestaRecepcionComprobante>
+                        <estado>RECIBIDA</estado>
+                        <comprobantes/>
+                    </RespuestaRecepcionComprobante>
+                </ns2:validarComprobanteResponse>
+            </soap:Body>
+        </soap:Envelope>
+        """;
+
+    private static string AutorizacionResponse => """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <ns2:autorizacionComprobanteResponse xmlns:ns2="http://ec.gob.sri.ws.autorizacion">
+                    <RespuestaAutorizacionComprobante>
+                        <claveAccesoConsultada>1234567890123456789012345678901234567890123456789</claveAccesoConsultada>
+                        <numeroComprobantes>0</numeroComprobantes>
+                        <autorizaciones/>
+                    </RespuestaAutorizacionComprobante>
+                </ns2:autorizacionComprobanteResponse>
+            </soap:Body>
+        </soap:Envelope>
+        """;
+
+    [Fact]
+    public async Task SendDocumentAsync_WhenTestEnvironment_UsesRecepcionUrl()
+    {
+        var config = new SriConfiguration
+        {
+            Environment = EnvironmentType.Test,
+            RecepcionUrl = "https://celcer.sri.gob.ec/recepcion-test",
+            RecepcionUrlProduccion = "https://cel.sri.gob.ec/recepcion-prod",
+            AutorizacionUrl = "https://celcer.sri.gob.ec/autorizacion-test",
+            AutorizacionUrlProduccion = "https://cel.sri.gob.ec/autorizacion-prod"
+        };
+        var (client, handlerMock) = CreateClientWithHandler(config, RecepcionRecibidaResponse);
+
+        await client.SendDocumentAsync("<factura/>");
+
+        handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(r =>
+                r.RequestUri != null &&
+                r.RequestUri.ToString().Contains("celcer.sri.gob.ec")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SendDocumentAsync_WhenProductionEnvironment_UsesRecepcionUrlProduccion()
+    {
+        var config = new SriConfiguration
+        {
+            Environment = EnvironmentType.Production,
+            RecepcionUrl = "https://celcer.sri.gob.ec/recepcion-test",
+            RecepcionUrlProduccion = "https://cel.sri.gob.ec/recepcion-prod",
+            AutorizacionUrl = "https://celcer.sri.gob.ec/autorizacion-test",
+            AutorizacionUrlProduccion = "https://cel.sri.gob.ec/autorizacion-prod"
+        };
+        var (client, handlerMock) = CreateClientWithHandler(config, RecepcionRecibidaResponse);
+
+        await client.SendDocumentAsync("<factura/>");
+
+        handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(r =>
+                r.RequestUri != null &&
+                r.RequestUri.ToString().Contains("cel.sri.gob.ec") &&
+                !r.RequestUri.ToString().Contains("celcer.sri.gob.ec")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CheckAuthorizationAsync_WhenTestEnvironment_UsesAutorizacionUrl()
+    {
+        var config = new SriConfiguration
+        {
+            Environment = EnvironmentType.Test,
+            RecepcionUrl = "https://celcer.sri.gob.ec/recepcion-test",
+            RecepcionUrlProduccion = "https://cel.sri.gob.ec/recepcion-prod",
+            AutorizacionUrl = "https://celcer.sri.gob.ec/autorizacion-test",
+            AutorizacionUrlProduccion = "https://cel.sri.gob.ec/autorizacion-prod"
+        };
+        var (client, handlerMock) = CreateClientWithHandler(config, AutorizacionResponse);
+
+        await client.CheckAuthorizationAsync("1234567890123456789012345678901234567890123456789");
+
+        handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(r =>
+                r.RequestUri != null &&
+                r.RequestUri.ToString().Contains("celcer.sri.gob.ec")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CheckAuthorizationAsync_WhenProductionEnvironment_UsesAutorizacionUrlProduccion()
+    {
+        var config = new SriConfiguration
+        {
+            Environment = EnvironmentType.Production,
+            RecepcionUrl = "https://celcer.sri.gob.ec/recepcion-test",
+            RecepcionUrlProduccion = "https://cel.sri.gob.ec/recepcion-prod",
+            AutorizacionUrl = "https://celcer.sri.gob.ec/autorizacion-test",
+            AutorizacionUrlProduccion = "https://cel.sri.gob.ec/autorizacion-prod"
+        };
+        var (client, handlerMock) = CreateClientWithHandler(config, AutorizacionResponse);
+
+        await client.CheckAuthorizationAsync("1234567890123456789012345678901234567890123456789");
+
+        handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(r =>
+                r.RequestUri != null &&
+                r.RequestUri.ToString().Contains("cel.sri.gob.ec") &&
+                !r.RequestUri.ToString().Contains("celcer.sri.gob.ec")),
+            ItExpr.IsAny<CancellationToken>());
     }
 }

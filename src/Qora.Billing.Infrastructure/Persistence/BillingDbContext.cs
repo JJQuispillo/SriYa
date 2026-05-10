@@ -54,13 +54,14 @@ public class BillingDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all configurations from assembly (excludes TenantConfiguration which needs the encryption key)
+        // Apply all configurations from assembly (excludes those that need the encryption key)
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(BillingDbContext).Assembly,
-            t => t != typeof(TenantConfiguration));
+            t => t != typeof(TenantConfiguration) && t != typeof(ElectronicSignatureConfiguration));
 
-        // Apply TenantConfiguration separately to pass the encryption key
+        // Apply key-dependent configurations separately to pass the encryption key
         modelBuilder.ApplyConfiguration(new TenantConfiguration(_encryptionKey));
+        modelBuilder.ApplyConfiguration(new ElectronicSignatureConfiguration(_encryptionKey));
 
         // Global query filters for multi-tenancy
         modelBuilder.Entity<Document>()

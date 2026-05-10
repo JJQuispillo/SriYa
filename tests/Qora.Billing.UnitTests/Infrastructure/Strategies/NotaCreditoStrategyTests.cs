@@ -116,6 +116,7 @@ public class NotaCreditoStrategyTests
     [Fact]
     public async Task ValidateDocumentAsync_WithValidIvaRates_ShouldReturnNoErrors()
     {
+        // 0%, 5%, 12%, 15% are all valid
         var doc0 = CreateValidNotaCredito(taxRate: 0m);
         var errors0 = await _strategy.ValidateDocumentAsync(doc0);
         errors0.Should().BeEmpty();
@@ -123,6 +124,10 @@ public class NotaCreditoStrategyTests
         var doc5 = CreateValidNotaCredito(taxRate: 5m);
         var errors5 = await _strategy.ValidateDocumentAsync(doc5);
         errors5.Should().BeEmpty();
+
+        var doc12 = CreateValidNotaCredito(taxRate: 12m);
+        var errors12 = await _strategy.ValidateDocumentAsync(doc12);
+        errors12.Should().BeEmpty();
 
         var doc15 = CreateValidNotaCredito(taxRate: 15m);
         var errors15 = await _strategy.ValidateDocumentAsync(doc15);

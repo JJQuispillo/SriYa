@@ -20,9 +20,9 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
     private readonly SriConfiguration _sriConfiguration;
 
     /// <summary>
-    /// Valid IVA tax rates for Ecuador (2026): 0%, 5%, 15%.
+    /// Valid IVA tax rates for Ecuador (2026): 0%, 5%, 12%, 15%.
     /// </summary>
-    private static readonly HashSet<decimal> ValidIvaRates = [0m, 5m, 15m];
+    private static readonly HashSet<decimal> ValidIvaRates = [0m, 5m, 12m, 15m];
 
     /// <summary>
     /// SRI document number format: estab-ptoEmi-secuencial (e.g., 001-001-000000001).

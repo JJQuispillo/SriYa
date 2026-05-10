@@ -1,4 +1,6 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Qora.Billing.Api.Endpoints;
 using Qora.Billing.Api.Middleware;
@@ -136,6 +138,39 @@ try
         });
     });
 
+    // ─── Rate Limiting ───────────────────────────────────────────────
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddSlidingWindowLimiter("api-key-policy", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = builder.Configuration.GetValue<int>("RateLimit:PermitLimit", 120);
+            limiterOptions.Window = TimeSpan.FromSeconds(
+                builder.Configuration.GetValue<int>("RateLimit:WindowSeconds", 60));
+            limiterOptions.SegmentsPerWindow = 6;
+            limiterOptions.QueueLimit = 0;
+            limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
+
+        options.OnRejected = async (context, cancellationToken) =>
+        {
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)TimeSpan.FromSeconds(
+                    context.HttpContext.RequestServices
+                        .GetRequiredService<IConfiguration>()
+                        .GetValue<int>("RateLimit:WindowSeconds", 60)).TotalSeconds).ToString();
+            await context.HttpContext.Response.WriteAsJsonAsync(
+                new
+                {
+                    type = "https://tools.ietf.org/html/rfc6585#section-4",
+                    title = "Demasiadas solicitudes",
+                    status = 429,
+                    detail = "Límite de solicitudes excedido. Intente nuevamente en unos segundos."
+                },
+                cancellationToken);
+        };
+    });
+
     // ─── Health Checks ───────────────────────────────────────────────
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<Qora.Billing.Infrastructure.Persistence.BillingDbContext>("database");
@@ -143,6 +178,15 @@ try
     // ═══════════════════════════════════════════════════════════════════
     var app = builder.Build();
     // ═══════════════════════════════════════════════════════════════════
+
+    // ─── Production: weak-key guard ─────────────────────────────────
+    if (app.Environment.IsProduction())
+    {
+        var encryptionKey = builder.Configuration["Encryption:Key"];
+        if (string.IsNullOrEmpty(encryptionKey) || encryptionKey == "change-this-32-char-key-in-prod!!")
+            throw new InvalidOperationException(
+                "Encryption:Key no puede ser el valor por defecto en ambiente Production.");
+    }
 
     // ─── Auto-migrate Database ───────────────────────────────────────
     using (var scope = app.Services.CreateScope())
@@ -156,6 +200,16 @@ try
         }
         await db.Database.MigrateAsync();
         Log.Information("Database migration completed successfully");
+
+        // ─── B1d: Re-encrypt existing electronic_signatures rows ────────────
+        // Handles the data migration that cannot run inside the EF migration itself
+        // (AES+HKDF requires .NET crypto APIs not available in PL/pgSQL).
+        // Idempotent: rows already in HKDF-encrypted Base64 format are skipped.
+        var certMigrator = new Qora.Billing.Infrastructure.Persistence.CertificateDataMigrator(
+            db,
+            builder.Configuration,
+            scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Qora.Billing.Infrastructure.Persistence.CertificateDataMigrator>>());
+        await certMigrator.MigrateAsync();
     }
 
     // ─── Middleware Pipeline ─────────────────────────────────────────
@@ -174,14 +228,15 @@ try
     app.UseSerilogRequestLogging();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseRateLimiter();
     app.UseTenantContext();
 
     // ─── Map Endpoints ───────────────────────────────────────────────
-    app.MapDocumentEndpoints();
+    app.MapDocumentEndpoints().RequireRateLimiting("api-key-policy");
     app.MapTenantEndpoints();
-    app.MapCertificateEndpoints();
-    app.MapApiKeyEndpoints();
-    app.MapUsageEndpoints();
+    app.MapCertificateEndpoints().RequireRateLimiting("api-key-policy");
+    app.MapApiKeyEndpoints().RequireRateLimiting("api-key-policy");
+    app.MapUsageEndpoints().RequireRateLimiting("api-key-policy");
     app.MapEmailEndpoints();
     app.MapHealthEndpoints();
 

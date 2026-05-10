@@ -19,6 +19,7 @@ public static class EmailEndpoints
         // ── Document email dispatch ──────────────────────────────────────
         var docs = routes.MapGroup("/api/v1/documents")
             .RequireAuthorization()
+            .RequireRateLimiting("api-key-policy")
             .WithTags("Email")
             .WithOpenApi();
 
@@ -29,6 +30,7 @@ public static class EmailEndpoints
         // ── Tenant email settings ────────────────────────────────────────
         var tenants = routes.MapGroup("/api/v1/tenants")
             .RequireAuthorization()
+            .RequireRateLimiting("api-key-policy")
             .WithTags("Email")
             .WithOpenApi();
 

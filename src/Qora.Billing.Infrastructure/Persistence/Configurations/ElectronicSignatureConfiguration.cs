@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Qora.Billing.Domain.Entities;
+using Qora.Billing.Infrastructure.Persistence.Converters;
 
 namespace Qora.Billing.Infrastructure.Persistence.Configurations;
 
-public class ElectronicSignatureConfiguration : IEntityTypeConfiguration<ElectronicSignature>
+public class ElectronicSignatureConfiguration(string encryptionKey) : IEntityTypeConfiguration<ElectronicSignature>
 {
     public void Configure(EntityTypeBuilder<ElectronicSignature> builder)
     {
@@ -19,15 +20,26 @@ public class ElectronicSignatureConfiguration : IEntityTypeConfiguration<Electro
             .HasColumnName("tenant_id")
             .IsRequired();
 
+        // CertificateData: stored encrypted as Base64 in a text column.
+        // Domain type is non-nullable byte[], so lambda delegates bridge to
+        // the nullable-typed converter via the internal static helpers.
         builder.Property(e => e.CertificateData)
             .HasColumnName("certificate_data")
-            .HasColumnType("bytea")
-            .IsRequired();
+            .HasColumnType("text")
+            .IsRequired()
+            .HasConversion(
+                v => EncryptedBytesConverter.EncryptValue(v, encryptionKey),
+                v => EncryptedBytesConverter.DecryptValue(v, encryptionKey));
 
+        // PasswordEncrypted: encrypted text column.
+        // Domain type is non-nullable string; bridged via internal static helpers.
         builder.Property(e => e.PasswordEncrypted)
             .HasColumnName("password_encrypted")
-            .HasMaxLength(500)
-            .IsRequired();
+            .HasColumnType("varchar(500)")
+            .IsRequired()
+            .HasConversion(
+                v => EncryptedStringConverter.EncryptValue(v, encryptionKey),
+                v => EncryptedStringConverter.DecryptValue(v, encryptionKey));
 
         builder.Property(e => e.OwnerName)
             .HasColumnName("owner_name")
