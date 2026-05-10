@@ -56,6 +56,22 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
             },
 
+            SubscriptionBlockedException ex => new ProblemDetails
+            {
+                Status = StatusCodes.Status402PaymentRequired,
+                Title = "Suscripción bloqueada",
+                Detail = ex.Message,
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5"
+            },
+
+            QuotaExceededException ex => new ProblemDetails
+            {
+                Status = StatusCodes.Status402PaymentRequired,
+                Title = "Límite de documentos alcanzado",
+                Detail = ex.Message,
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5"
+            },
+
             TenantInactiveException ex => new ProblemDetails
             {
                 Status = StatusCodes.Status403Forbidden,

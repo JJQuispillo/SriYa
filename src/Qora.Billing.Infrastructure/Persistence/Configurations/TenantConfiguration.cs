@@ -64,6 +64,14 @@ public class TenantConfiguration(string encryptionKey) : IEntityTypeConfiguratio
             .HasForeignKey(e => e.TenantId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(t => t.ContactEmail)
+            .HasColumnName("contact_email")
+            .HasMaxLength(255);
+
+        // Subscription FK
+        builder.Property(t => t.SubscriptionId)
+            .HasColumnName("subscription_id");
+
         // Indexes
         builder.HasIndex(t => t.Ruc)
             .IsUnique()

@@ -1,7 +1,9 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Qora.Billing.Application.DTOs;
 using Qora.Billing.Application.Extensions;
+using Qora.Billing.Application.Settings;
 using Qora.Billing.Domain.Entities;
 using Qora.Billing.Domain.Enums;
 using Qora.Billing.Domain.Exceptions;
@@ -20,10 +22,12 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
     private readonly IDocumentEventRepository _documentEventRepository;
     private readonly IUsageRecordRepository _usageRecordRepository;
     private readonly ISriTaxCodeRepository _sriTaxCodeRepository;
+    private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IEnumerable<IDocumentTypeStrategy> _strategies;
     private readonly IDocumentSigner _documentSigner;
     private readonly ISriClient _sriClient;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly FeaturesSettings _featuresSettings;
     private readonly ILogger<ProcessDocumentCommandHandler> _logger;
 
     public ProcessDocumentCommandHandler(
@@ -33,10 +37,12 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         IDocumentEventRepository documentEventRepository,
         IUsageRecordRepository usageRecordRepository,
         ISriTaxCodeRepository sriTaxCodeRepository,
+        ISubscriptionRepository subscriptionRepository,
         IEnumerable<IDocumentTypeStrategy> strategies,
         IDocumentSigner documentSigner,
         ISriClient sriClient,
         IUnitOfWork unitOfWork,
+        IOptions<FeaturesSettings> featuresSettings,
         ILogger<ProcessDocumentCommandHandler> logger)
     {
         _tenantRepository = tenantRepository;
@@ -45,10 +51,12 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         _documentEventRepository = documentEventRepository;
         _usageRecordRepository = usageRecordRepository;
         _sriTaxCodeRepository = sriTaxCodeRepository;
+        _subscriptionRepository = subscriptionRepository;
         _strategies = strategies;
         _documentSigner = documentSigner;
         _sriClient = sriClient;
         _unitOfWork = unitOfWork;
+        _featuresSettings = featuresSettings.Value;
         _logger = logger;
     }
 
@@ -58,6 +66,18 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, cancellationToken)
             ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
         tenant.EnsureActive();
+
+        // 1b. Quota enforcement (feature-flagged; skipped for tenants without a subscription)
+        var quotaEnabled = _featuresSettings.QuotaEnforcementEnabled;
+        if (quotaEnabled && tenant.SubscriptionId.HasValue)
+        {
+            var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenant.Id, cancellationToken);
+            var currentBillingPeriod = DateTime.UtcNow.ToString("yyyy-MM");
+            var currentUsage = await _usageRecordRepository.CountByTenantAndPeriodAsync(
+                tenant.Id, currentBillingPeriod, cancellationToken);
+            var planLimit = subscription?.Plan?.DocumentLimit ?? -1;
+            tenant.EnsureCanProcessDocument(currentUsage, planLimit, quotaEnabled);
+        }
 
         // 2. Get active certificate
         var signature = await _signatureRepository.GetActiveByTenantIdAsync(command.TenantId, cancellationToken)

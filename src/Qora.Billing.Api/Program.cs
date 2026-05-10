@@ -32,6 +32,14 @@ try
         options.Environment = builder.Environment.IsProduction() ? "Production" : "Test";
     });
 
+    // ─── Feature Flags ────────────────────────────────────────────
+    builder.Services.Configure<Qora.Billing.Application.Settings.FeaturesSettings>(
+        builder.Configuration.GetSection(Qora.Billing.Application.Settings.FeaturesSettings.SectionName));
+
+    // ─── Stripe Settings ──────────────────────────────────────────
+    builder.Services.Configure<Qora.Billing.Application.Settings.StripeSettings>(
+        builder.Configuration.GetSection(Qora.Billing.Application.Settings.StripeSettings.SectionName));
+
     // ─── Infrastructure Layer (DB, repos, XML, signing, SRI, PDF) ───
     builder.Services.AddInfrastructureServices(builder.Configuration);
 
@@ -237,6 +245,9 @@ try
     app.MapCertificateEndpoints().RequireRateLimiting("api-key-policy");
     app.MapApiKeyEndpoints().RequireRateLimiting("api-key-policy");
     app.MapUsageEndpoints().RequireRateLimiting("api-key-policy");
+    app.MapRegistrationEndpoints();
+    app.MapSubscriptionEndpoints();
+    app.MapWebhookEndpoints();
     app.MapEmailEndpoints();
     app.MapHealthEndpoints();
 

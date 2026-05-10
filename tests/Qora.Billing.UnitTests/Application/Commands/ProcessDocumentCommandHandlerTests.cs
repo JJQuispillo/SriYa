@@ -1,15 +1,18 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Qora.Billing.Application.Commands;
 using Qora.Billing.Application.Commands.Handlers;
 using Qora.Billing.Application.DTOs;
+using Qora.Billing.Application.Settings;
 using Qora.Billing.Domain.Entities;
 using Qora.Billing.Domain.Enums;
 using Qora.Billing.Domain.Exceptions;
 using Qora.Billing.Domain.Interfaces;
 using DomainDocumentType = Qora.Billing.Domain.Enums.DocumentType;
 using SriTaxCode = Qora.Billing.Domain.Entities.SriTaxCode;
+using Plan = Qora.Billing.Domain.Entities.Plan;
 
 namespace Qora.Billing.UnitTests.Application.Commands;
 
@@ -32,6 +35,7 @@ public class ProcessDocumentCommandHandlerTests
             .Setup(r => r.FindAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(SriTaxCode.Create("2", "4", 15m, "IVA 15%"));
     }
+    private readonly Mock<ISubscriptionRepository> _subscriptionRepo = new();
     private readonly Mock<IDocumentSigner> _signer = new();
     private readonly Mock<ISriClient> _sriClient = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
@@ -40,8 +44,11 @@ public class ProcessDocumentCommandHandlerTests
     private ProcessDocumentCommandHandler CreateHandler() => new(
         _tenantRepo.Object, _documentRepo.Object, _signatureRepo.Object,
         _eventRepo.Object, _usageRepo.Object, _sriTaxCodeRepo.Object,
+        _subscriptionRepo.Object,
         new[] { _strategy.Object },
-        _signer.Object, _sriClient.Object, _unitOfWork.Object, _logger.Object);
+        _signer.Object, _sriClient.Object, _unitOfWork.Object,
+        Options.Create(new FeaturesSettings { QuotaEnforcementEnabled = false }),
+        _logger.Object);
 
     private static Tenant CreateActiveTenant()
     {
@@ -307,6 +314,151 @@ public class ProcessDocumentCommandHandlerTests
             It.Is<Document>(d => d.Status == DocumentStatus.Failed),
             It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    // ─── Batch 4: Quota enforcement tests ────────────────────────────────────
+
+    private ProcessDocumentCommandHandler CreateHandlerWithQuota(bool quotaEnabled) => new(
+        _tenantRepo.Object, _documentRepo.Object, _signatureRepo.Object,
+        _eventRepo.Object, _usageRepo.Object, _sriTaxCodeRepo.Object,
+        _subscriptionRepo.Object,
+        new[] { _strategy.Object },
+        _signer.Object, _sriClient.Object, _unitOfWork.Object,
+        Options.Create(new FeaturesSettings { QuotaEnforcementEnabled = quotaEnabled }),
+        _logger.Object);
+
+    private static Subscription CreateSubscription(Guid tenantId, Guid planId, SubscriptionStatus status = SubscriptionStatus.Trial)
+    {
+        return Subscription.Create(tenantId, planId, status);
+    }
+
+    [Fact]
+    public async Task Handle_QuotaEnforcementDisabled_ProcessesDocumentRegardlessOfUsage()
+    {
+        // Arrange: tenant has a subscription, usage is at plan limit, but quota is disabled
+        var plan = Plan.Create("Free", "free", 50, 0m);
+        var tenant = CreateActiveTenant();
+        var signature = CreateValidSignature(tenant.Id);
+        var subscription = CreateSubscription(tenant.Id, plan.Id);
+        var xml = GenerateTestXml();
+
+        _tenantRepo.Setup(r => r.GetByIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tenant);
+
+        // Even if usage == limit, quota is off — should never be called
+        _subscriptionRepo
+            .Setup(r => r.GetByTenantIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(subscription);
+        _usageRepo
+            .Setup(r => r.CountByTenantAndPeriodAsync(tenant.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(50); // at limit
+
+        _signatureRepo.Setup(r => r.GetActiveByTenantIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(signature);
+        _strategy.Setup(s => s.ValidateDocumentAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string>());
+        _strategy.Setup(s => s.BuildXmlAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(xml);
+        _strategy.Setup(s => s.BuildRidePdfAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+        _signer.Setup(s => s.SignDocumentAsync(It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("<signed>xml</signed>");
+        _sriClient.Setup(c => c.SendDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SriSendResult(true, "RECIBIDA", []));
+        _sriClient.Setup(c => c.CheckAuthorizationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SriAuthorizationResult(true, "AUTH999", DateTime.UtcNow, "AUTORIZADO", []));
+        _documentRepo.Setup(r => r.CreateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Document d, CancellationToken _) => d);
+        _usageRepo.Setup(r => r.CreateAsync(It.IsAny<UsageRecord>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UsageRecord u, CancellationToken _) => u);
+        _eventRepo.Setup(r => r.CreateAsync(It.IsAny<DocumentEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((DocumentEvent e, CancellationToken _) => e);
+
+        var handler = CreateHandlerWithQuota(quotaEnabled: false);
+        var command = CreateValidCommand(tenant.Id);
+
+        // Act — should succeed without quota check
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        result.Status.Should().Be(DocumentStatus.Authorized);
+    }
+
+    [Fact]
+    public async Task Handle_QuotaEnforcementEnabled_TenantAtLimit_ThrowsQuotaExceededException()
+    {
+        // Arrange: quota enabled, tenant has subscription, usage == plan limit
+        var plan = Plan.Create("Free", "free", 50, 0m);
+        var tenant = CreateActiveTenant();
+        var subscription = Subscription.Create(tenant.Id, plan.Id, SubscriptionStatus.Trial);
+
+        // Wire the navigation property via reflection so EnsureCanProcessDocument can read Plan.DocumentLimit
+        typeof(Subscription)
+            .GetProperty("Plan")!
+            .SetValue(subscription, plan);
+
+        tenant.SetSubscription(subscription.Id);
+
+        // Wire the subscription navigation property on the tenant
+        typeof(Tenant)
+            .GetProperty("Subscription")!
+            .SetValue(tenant, subscription);
+
+        _tenantRepo.Setup(r => r.GetByIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tenant);
+        _subscriptionRepo
+            .Setup(r => r.GetByTenantIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(subscription);
+        _usageRepo
+            .Setup(r => r.CountByTenantAndPeriodAsync(tenant.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(50); // exactly at limit
+
+        var handler = CreateHandlerWithQuota(quotaEnabled: true);
+        var command = CreateValidCommand(tenant.Id);
+
+        // Act
+        var act = () => handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<QuotaExceededException>();
+    }
+
+    [Fact]
+    public async Task Handle_QuotaEnforcementEnabled_TenantSuspended_ThrowsSubscriptionBlockedException()
+    {
+        // Arrange: quota enabled, tenant has a Suspended subscription
+        var plan = Plan.Create("Pro", "pro", 500, 29m);
+        var tenant = CreateActiveTenant();
+        var subscription = Subscription.Create(tenant.Id, plan.Id, SubscriptionStatus.Suspended);
+
+        typeof(Subscription)
+            .GetProperty("Plan")!
+            .SetValue(subscription, plan);
+
+        tenant.SetSubscription(subscription.Id);
+
+        typeof(Tenant)
+            .GetProperty("Subscription")!
+            .SetValue(tenant, subscription);
+
+        _tenantRepo.Setup(r => r.GetByIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tenant);
+        _subscriptionRepo
+            .Setup(r => r.GetByTenantIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(subscription);
+        _usageRepo
+            .Setup(r => r.CountByTenantAndPeriodAsync(tenant.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        var handler = CreateHandlerWithQuota(quotaEnabled: true);
+        var command = CreateValidCommand(tenant.Id);
+
+        // Act
+        var act = () => handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<SubscriptionBlockedException>();
     }
 
     [Fact]
