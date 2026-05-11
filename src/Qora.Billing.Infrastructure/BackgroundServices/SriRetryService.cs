@@ -109,7 +109,16 @@ public class SriRetryService : BackgroundService
 
             if (!sendResult.IsAccepted)
             {
-                HandleRetryFailure(document, string.Join("; ", sendResult.Messages));
+                // SRI returned DEVUELTA: the document has a content error.
+                // Per SRI Ficha Técnica §5.10, re-sending the same signed XML will always fail.
+                // This is a permanent failure that requires human correction — do NOT schedule retries.
+                var sriError = string.Join("; ", sendResult.Messages);
+                var errorMsg = $"SRI rechazó el documento (DEVUELTA): {sriError}. Se requiere corrección manual antes de reenviar.";
+                _logger.LogWarning(
+                    "Document {DocumentId} permanently rejected by SRI (DEVUELTA) on retry attempt {RetryCount}: {Error}",
+                    document.Id, document.RetryCount + 1, sriError);
+                document.Reject(errorMsg);
+                document.MarkFailed(errorMsg);
                 await documentRepository.UpdateAsync(document, cancellationToken);
                 return;
             }
