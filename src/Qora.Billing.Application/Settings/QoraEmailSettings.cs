@@ -13,6 +13,6 @@ public class QoraEmailSettings
     public string SmtpUser { get; set; } = string.Empty;
     public string SmtpPassword { get; set; } = string.Empty;
     public bool UseSsl { get; set; } = true;
-    public string SenderEmail { get; set; } = "noreply@qora.io";
+    public string SenderEmail { get; set; } = "noreply@example.com";
     public string SenderName { get; set; } = "Qora Billing";
 }
