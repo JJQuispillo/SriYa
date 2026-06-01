@@ -12,15 +12,15 @@ using Qora.Billing.Infrastructure.Persistence;
 namespace Qora.Billing.Infrastructure.Migrations
 {
     [DbContext(typeof(BillingDbContext))]
-    [Migration("20260412075737_AddSriTaxCodes")]
-    partial class AddSriTaxCodes
+    [Migration("20260601225611_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.14")
+                .HasAnnotation("ProductVersion", "9.0.16")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -416,9 +416,9 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<byte[]>("CertificateData")
+                    b.Property<string>("CertificateData")
                         .IsRequired()
-                        .HasColumnType("bytea")
+                        .HasColumnType("text")
                         .HasColumnName("certificate_data");
 
                     b.Property<DateTime>("CreatedAt")
@@ -443,8 +443,7 @@ namespace Qora.Billing.Infrastructure.Migrations
 
                     b.Property<string>("PasswordEncrypted")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("password_encrypted");
 
                     b.Property<Guid>("TenantId")
@@ -679,6 +678,11 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("business_name");
 
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("contact_email");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -760,47 +764,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.ToTable("tenants", (string)null);
                 });
 
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.UsageRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("BillingPeriod")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .HasColumnType("character varying(7)")
-                        .HasColumnName("billing_period");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("DocumentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("document_id");
-
-                    b.Property<string>("DocumentType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("document_type");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentId")
-                        .HasDatabaseName("ix_usage_records_document_id");
-
-                    b.HasIndex("TenantId", "BillingPeriod")
-                        .HasDatabaseName("ix_usage_records_tenant_id_billing_period");
-
-                    b.ToTable("usage_records", (string)null);
-                });
-
             modelBuilder.Entity("Qora.Billing.Domain.Entities.ApiKey", b =>
                 {
                     b.HasOne("Qora.Billing.Domain.Entities.Tenant", null)
@@ -861,15 +824,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.UsageRecord", b =>
-                {
-                    b.HasOne("Qora.Billing.Domain.Entities.Document", null)
-                        .WithMany()
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

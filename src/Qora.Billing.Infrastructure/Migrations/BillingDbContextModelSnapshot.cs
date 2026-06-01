@@ -17,7 +17,7 @@ namespace Qora.Billing.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.15")
+                .HasAnnotation("ProductVersion", "9.0.16")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -459,100 +459,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.ToTable("electronic_signatures", (string)null);
                 });
 
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.Plan", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<int>("DocumentLimit")
-                        .HasColumnType("integer")
-                        .HasColumnName("document_limit");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("name");
-
-                    b.Property<decimal>("PriceMonthlyUsd")
-                        .HasColumnType("numeric(10,2)")
-                        .HasColumnName("price_monthly_usd");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("slug");
-
-                    b.Property<string>("StripePriceId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("stripe_price_id");
-
-                    b.Property<string>("StripeProductId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("stripe_product_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique()
-                        .HasDatabaseName("ix_plans_slug");
-
-                    b.ToTable("plans", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DocumentLimit = 50,
-                            IsActive = true,
-                            Name = "Free",
-                            PriceMonthlyUsd = 0.00m,
-                            Slug = "free",
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DocumentLimit = 500,
-                            IsActive = true,
-                            Name = "Basic",
-                            PriceMonthlyUsd = 29.00m,
-                            Slug = "basic",
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000003"),
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DocumentLimit = -1,
-                            IsActive = true,
-                            Name = "Pro",
-                            PriceMonthlyUsd = 99.00m,
-                            Slug = "pro",
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        });
-                });
-
             modelBuilder.Entity("Qora.Billing.Domain.Entities.SriTaxCode", b =>
                 {
                     b.Property<string>("TaxTypeCode")
@@ -757,70 +663,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.Subscription", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime>("CurrentPeriodEnd")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("current_period_end");
-
-                    b.Property<DateTime>("CurrentPeriodStart")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("current_period_start");
-
-                    b.Property<Guid>("PlanId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("plan_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("StripeCustomerId")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
-                        .HasColumnName("stripe_customer_id");
-
-                    b.Property<string>("StripeSubscriptionId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("stripe_subscription_id");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<DateTime?>("TrialEndsAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("trial_ends_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlanId");
-
-                    b.HasIndex("StripeSubscriptionId")
-                        .HasDatabaseName("ix_subscriptions_stripe_subscription_id");
-
-                    b.HasIndex("TenantId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_subscriptions_tenant_id");
-
-                    b.ToTable("subscriptions", (string)null);
-                });
-
             modelBuilder.Entity("Qora.Billing.Domain.Entities.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -895,10 +737,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("smtp_user");
 
-                    b.Property<Guid?>("SubscriptionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("subscription_id");
-
                     b.Property<string>("TradeName")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)")
@@ -921,47 +759,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .HasDatabaseName("ix_tenants_ruc");
 
                     b.ToTable("tenants", (string)null);
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.UsageRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("BillingPeriod")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .HasColumnType("character varying(7)")
-                        .HasColumnName("billing_period");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("DocumentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("document_id");
-
-                    b.Property<string>("DocumentType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("document_type");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentId")
-                        .HasDatabaseName("ix_usage_records_document_id");
-
-                    b.HasIndex("TenantId", "BillingPeriod")
-                        .HasDatabaseName("ix_usage_records_tenant_id_billing_period");
-
-                    b.ToTable("usage_records", (string)null);
                 });
 
             modelBuilder.Entity("Qora.Billing.Domain.Entities.ApiKey", b =>
@@ -1027,34 +824,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.Subscription", b =>
-                {
-                    b.HasOne("Qora.Billing.Domain.Entities.Plan", "Plan")
-                        .WithMany()
-                        .HasForeignKey("PlanId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Qora.Billing.Domain.Entities.Tenant", "Tenant")
-                        .WithOne("Subscription")
-                        .HasForeignKey("Qora.Billing.Domain.Entities.Subscription", "TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Plan");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.UsageRecord", b =>
-                {
-                    b.HasOne("Qora.Billing.Domain.Entities.Document", null)
-                        .WithMany()
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Qora.Billing.Domain.Entities.Destinatario", b =>
                 {
                     b.Navigation("Items");
@@ -1065,11 +834,6 @@ namespace Qora.Billing.Infrastructure.Migrations
                     b.Navigation("Destinatarios");
 
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("Qora.Billing.Domain.Entities.Tenant", b =>
-                {
-                    b.Navigation("Subscription");
                 });
 #pragma warning restore 612, 618
         }
