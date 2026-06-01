@@ -50,7 +50,7 @@ Swagger UI is available at `/swagger` in Development mode.
 | `Sri__TimeoutSeconds` | SRI request timeout | `30` |
 | `Sri__MaxRetries` | SRI retry attempts | `3` |
 | `ServiceAuth__ServiceToken` | Token for internal service-to-service auth | Required |
-| `Cors__AllowedOrigins__0` | Allowed CORS origin | `https://app.qora.app` |
+| `Cors__AllowedOrigins__0` | Allowed CORS origin | `http://localhost:3000` |
 | `ASPNETCORE_ENVIRONMENT` | Runtime environment | `Production` |
 
 ## Development Setup
@@ -134,4 +134,6 @@ dotnet format --verify-no-changes
 
 ## License
 
-Proprietary - Qora Team
+This project is open source under the [MIT License](./LICENSE).
+
+Copyright (c) 2026 qoraSystems
