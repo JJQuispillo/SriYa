@@ -16,7 +16,13 @@ services:
       - Sri__TimeoutSeconds=${SRI_TIMEOUT:-30}
       - Sri__MaxRetries=${SRI_MAX_RETRIES:-3}
       - ServiceAuth__ServiceToken=${SERVICE_AUTH_TOKEN}
-      - Cors__AllowedOrigins__0=${CORS_ORIGIN_0:-https://app.qora.app}
+      - Cors__AllowedOrigins__0=${CORS_ORIGIN_0:-http://localhost:3000}
+    # Optional: mount your SRI signing certificate (.p12) into the container.
+    # Certificates are normally uploaded per-tenant via
+    # POST /api/tenants/{id}/certificates, so this mount is only needed if you
+    # prefer to bind a file from the host. Uncomment and adjust the path.
+    # volumes:
+    #   - ./certs:/app/certs:ro
     depends_on:
       billing-db:
         condition: service_healthy
@@ -29,12 +35,15 @@ services:
     networks:
       - billing-network
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.billing-api.rule=Host(`facturacion.qora.app`)"
-      - "traefik.http.routers.billing-api.entrypoints=websecure"
-      - "traefik.http.routers.billing-api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.billing-api.loadbalancer.server.port=8080"
+    # Optional: Traefik reverse-proxy labels for a hosted/public deployment.
+    # Uncomment and replace `your-domain.example.com` with your own host if you
+    # run Traefik with an ACME (Let's Encrypt) cert resolver named `letsencrypt`.
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.billing-api.rule=Host(`your-domain.example.com`)"
+    #   - "traefik.http.routers.billing-api.entrypoints=websecure"
+    #   - "traefik.http.routers.billing-api.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.billing-api.loadbalancer.server.port=8080"
 
   billing-db:
     image: postgres:16-alpine
