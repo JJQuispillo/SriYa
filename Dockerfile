@@ -31,11 +31,11 @@ RUN dotnet publish src/Qora.Billing.Api/Qora.Billing.Api.csproj \
 # Stage 4: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
-LABEL maintainer="Qora Team <dev@qora.app>"
+LABEL maintainer="qoraSystems"
 LABEL org.opencontainers.image.title="Qora Billing API"
 LABEL org.opencontainers.image.description="Ecuadorian electronic invoicing microservice"
 LABEL org.opencontainers.image.version="1.0.0"
-LABEL org.opencontainers.image.source="https://github.com/qora/billing"
+LABEL org.opencontainers.image.source="https://github.com/qoraSystems/qora-billing"
 
 # Install curl for health checks, then clean up
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
