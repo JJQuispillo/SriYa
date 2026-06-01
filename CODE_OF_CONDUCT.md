@@ -52,7 +52,7 @@ cuando una persona representa al proyecto en espacios públicos.
 Los casos de comportamiento abusivo, acosador o inaceptable pueden ser
 reportados de forma privada a las personas mantenedoras del proyecto a través de
 GitHub (por ejemplo, mediante un aviso de seguridad privado en
-`qoraSystems/qora-billing` o contactando directamente a los mantenedores). Todas
+`JJQuispillo/SriYa` o contactando directamente a los mantenedores). Todas
 las quejas serán revisadas e investigadas de manera puntual y justa.
 
 ## Atribución

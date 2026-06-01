@@ -11,7 +11,7 @@ aplican sobre la rama principal y la última versión publicada.
 
 Usa el canal privado de **GitHub Security Advisories** del repositorio:
 
-1. Ve a la pestaña **Security** de `qoraSystems/qora-billing`.
+1. Ve a la pestaña **Security** de `JJQuispillo/SriYa`.
 2. Selecciona **Report a vulnerability** (Private vulnerability reporting).
 3. Describe el problema, el impacto y, de ser posible, pasos para reproducirlo.
 
