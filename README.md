@@ -2,6 +2,23 @@
 
 Microservicio de facturacion electronica ecuatoriana para el ecosistema Qora POS. Genera, firma digitalmente (XAdES-BES), envia al SRI y almacena comprobantes electronicos conforme a la normativa vigente del Servicio de Rentas Internas del Ecuador.
 
+## Self-Host vs Hosted
+
+This repository is the **self-hostable** core of the Qora Billing API. You can
+run it on your own infrastructure with Docker Compose and operate it for one or
+more tenants. The defaults shipped here are tuned for a local/self-host setup:
+
+- CORS defaults to `http://localhost:3000`.
+- Secrets (DB password, service token, `Encryption.Key`) are **placeholders you
+  MUST replace** before any non-development use.
+- The reverse-proxy (Traefik) and TLS configuration are provided as an
+  **optional commented block** in `docker-compose.yml` for hosted deployments.
+
+A **hosted, multi-tenant** deployment additionally needs a public domain, a
+reverse proxy with TLS (uncomment the Traefik labels), and externally managed
+secrets. The same image and configuration surface support both modes — only the
+environment values differ.
+
 ## Quick Start
 
 ```bash
@@ -88,6 +105,38 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
 # API: http://localhost:5100
 # DB:  localhost:5433
 ```
+
+## SRI Signing Certificate (.p12) Setup
+
+To issue electronic documents you need an SRI-issued signing certificate
+(a PKCS#12 `.p12`/`.pfx` file) per tenant.
+
+1. **Set the encryption key.** Certificate private keys are encrypted at rest
+   using `Encryption.Key` (in `appsettings.json` or the `Encryption__Key`
+   environment variable). Replace the shipped `CHANGE_ME...` placeholder with a
+   unique 32+ character secret before uploading any certificate, e.g.:
+
+   ```bash
+   openssl rand -base64 32
+   ```
+
+   Never commit a real key.
+
+2. **Upload the certificate per tenant** via the API (the certificate and its
+   password are stored encrypted in the database):
+
+   ```bash
+   curl -X POST http://localhost:8080/api/tenants/{tenantId}/certificates \
+     -F "file=@/path/to/your-certificate.p12" \
+     -F "password=YOUR_P12_PASSWORD"
+   ```
+
+   List uploaded certificates with `GET /api/tenants/{tenantId}/certificates`.
+
+3. **(Optional) Host file mount.** If you prefer to provide the `.p12` from the
+   host filesystem instead of uploading via the API, uncomment the `volumes`
+   block under `billing-api` in `docker-compose.yml` and mount your `./certs`
+   directory into the container.
 
 ## Architecture
 
