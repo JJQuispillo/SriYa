@@ -25,10 +25,7 @@ public class BillingDbContext : DbContext
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
     public DbSet<ElectronicSignature> ElectronicSignatures => Set<ElectronicSignature>();
     public DbSet<DocumentEvent> DocumentEvents => Set<DocumentEvent>();
-    public DbSet<UsageRecord> UsageRecords => Set<UsageRecord>();
     public DbSet<SriTaxCode> SriTaxCodes => Set<SriTaxCode>();
-    public DbSet<Plan> Plans => Set<Plan>();
-    public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
     public BillingDbContext(DbContextOptions<BillingDbContext> options, IConfiguration configuration)
         : base(options)
@@ -60,13 +57,11 @@ public class BillingDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(BillingDbContext).Assembly,
             t => t != typeof(TenantConfiguration)
-                 && t != typeof(ElectronicSignatureConfiguration)
-                 && t != typeof(SubscriptionConfiguration));
+                 && t != typeof(ElectronicSignatureConfiguration));
 
         // Apply key-dependent configurations separately to pass the encryption key
         modelBuilder.ApplyConfiguration(new TenantConfiguration(_encryptionKey));
         modelBuilder.ApplyConfiguration(new ElectronicSignatureConfiguration(_encryptionKey));
-        modelBuilder.ApplyConfiguration(new SubscriptionConfiguration(_encryptionKey));
 
         // Global query filters for multi-tenancy
         modelBuilder.Entity<Document>()
@@ -77,9 +72,6 @@ public class BillingDbContext : DbContext
 
         modelBuilder.Entity<ElectronicSignature>()
             .HasQueryFilter(e => !_currentTenantId.HasValue || e.TenantId == _currentTenantId.Value);
-
-        modelBuilder.Entity<UsageRecord>()
-            .HasQueryFilter(u => !_currentTenantId.HasValue || u.TenantId == _currentTenantId.Value);
 
         modelBuilder.Entity<DocumentEvent>()
             .HasQueryFilter(de => !_currentTenantId.HasValue || de.TenantId == _currentTenantId.Value);

@@ -11,9 +11,7 @@ using Qora.Billing.Infrastructure.Persistence.Repositories;
 using Qora.Billing.Infrastructure.Signing;
 using Qora.Billing.Infrastructure.Sri;
 using Qora.Billing.Infrastructure.Strategies;
-using Qora.Billing.Infrastructure.Stripe;
 using Qora.Billing.Infrastructure.Xml;
-using QoraStripeConfig = Qora.Billing.Infrastructure.Stripe.StripeConfiguration;
 
 namespace Qora.Billing.Infrastructure;
 
@@ -38,11 +36,8 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
         services.AddScoped<IElectronicSignatureRepository, ElectronicSignatureRepository>();
-        services.AddScoped<IUsageRecordRepository, UsageRecordRepository>();
         services.AddScoped<IDocumentEventRepository, DocumentEventRepository>();
         services.AddScoped<ISriTaxCodeRepository, SriTaxCodeRepository>();
-        services.AddScoped<IPlanRepository, PlanRepository>();
-        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // XML builders (concrete singleton registrations, one per document type)
@@ -82,17 +77,6 @@ public static class DependencyInjection
         services.AddScoped<QoraEmailProvider>();
         services.AddScoped<CustomEmailProvider>();
         services.AddScoped<IEmailService, SmtpEmailService>();
-
-        // Stripe integration
-        services.Configure<QoraStripeConfig>(configuration.GetSection(QoraStripeConfig.SectionName));
-        services.AddScoped<IStripeService, StripeService>();
-
-        // Set Stripe global API key at startup via Stripe.StripeConfiguration (the SDK's own static config)
-        var stripeSecretKey = configuration[$"{QoraStripeConfig.SectionName}:SecretKey"];
-        if (!string.IsNullOrWhiteSpace(stripeSecretKey))
-        {
-            global::Stripe.StripeConfiguration.ApiKey = stripeSecretKey;
-        }
 
         return services;
     }

@@ -68,10 +68,6 @@ public class TenantConfiguration(string encryptionKey) : IEntityTypeConfiguratio
             .HasColumnName("contact_email")
             .HasMaxLength(255);
 
-        // Subscription FK
-        builder.Property(t => t.SubscriptionId)
-            .HasColumnName("subscription_id");
-
         // Indexes
         builder.HasIndex(t => t.Ruc)
             .IsUnique()
