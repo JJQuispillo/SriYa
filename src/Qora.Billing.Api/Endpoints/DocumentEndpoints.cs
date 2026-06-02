@@ -24,10 +24,6 @@ public static class DocumentEndpoints
             .WithTags("Documents")
             .WithOpenApi();
 
-        group.MapPost("/process", ProcessDocument)
-            .WithName("ProcessDocument")
-            .WithSummary("Process and submit an electronic document to SRI");
-
         // Endpoints tipados por tipo de documento (uno por comprobante SRI).
         group.MapPost("/facturas", CreateFactura)
             .WithName("CreateFactura")
@@ -78,18 +74,6 @@ public static class DocumentEndpoints
             .WithSummary("Check the current status of a document");
 
         return group;
-    }
-
-    private static async Task<Results<Created<DocumentResponse>, BadRequest<ProblemDetails>>> ProcessDocument(
-        [FromBody] CreateDocumentRequest request,
-        ITenantContext tenantContext,
-        ISender sender,
-        CancellationToken ct)
-    {
-        var tenantId = GetRequiredTenantId(tenantContext);
-        var command = new ProcessDocumentCommand(tenantId, request);
-        var result = await sender.Send(command, ct);
-        return TypedResults.Created($"/api/v1/documents/{result.Id}", result);
     }
 
     private static Task<Created<DocumentResponse>> CreateFactura(
