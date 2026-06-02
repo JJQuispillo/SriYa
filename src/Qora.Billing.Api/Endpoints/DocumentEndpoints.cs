@@ -1,9 +1,12 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Qora.Billing.Application.Commands;
 using Qora.Billing.Application.DTOs;
+using Qora.Billing.Application.DTOs.Requests;
 using Qora.Billing.Application.Interfaces;
+using Qora.Billing.Application.Mapping;
 using Qora.Billing.Application.Queries;
 
 namespace Qora.Billing.Api.Endpoints;
@@ -24,6 +27,31 @@ public static class DocumentEndpoints
         group.MapPost("/process", ProcessDocument)
             .WithName("ProcessDocument")
             .WithSummary("Process and submit an electronic document to SRI");
+
+        // Endpoints tipados por tipo de documento (uno por comprobante SRI).
+        group.MapPost("/facturas", CreateFactura)
+            .WithName("CreateFactura")
+            .WithSummary("Crear y enviar una Factura (01) al SRI");
+
+        group.MapPost("/liquidaciones-compra", CreateLiquidacionCompra)
+            .WithName("CreateLiquidacionCompra")
+            .WithSummary("Crear y enviar una Liquidación de Compra (03) al SRI");
+
+        group.MapPost("/notas-credito", CreateNotaCredito)
+            .WithName("CreateNotaCredito")
+            .WithSummary("Crear y enviar una Nota de Crédito (04) al SRI");
+
+        group.MapPost("/notas-debito", CreateNotaDebito)
+            .WithName("CreateNotaDebito")
+            .WithSummary("Crear y enviar una Nota de Débito (05) al SRI");
+
+        group.MapPost("/guias-remision", CreateGuiaRemision)
+            .WithName("CreateGuiaRemision")
+            .WithSummary("Crear y enviar una Guía de Remisión (06) al SRI");
+
+        group.MapPost("/retenciones", CreateComprobanteRetencion)
+            .WithName("CreateComprobanteRetencion")
+            .WithSummary("Crear y enviar un Comprobante de Retención (07) al SRI");
 
         group.MapGet("/{id:guid}", GetDocumentById)
             .WithName("GetDocumentById")
@@ -60,6 +88,79 @@ public static class DocumentEndpoints
     {
         var tenantId = GetRequiredTenantId(tenantContext);
         var command = new ProcessDocumentCommand(tenantId, request);
+        var result = await sender.Send(command, ct);
+        return TypedResults.Created($"/api/v1/documents/{result.Id}", result);
+    }
+
+    private static Task<Created<DocumentResponse>> CreateFactura(
+        [FromBody] CreateFacturaRequest request,
+        IValidator<CreateFacturaRequest> validator,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct) =>
+        ProcessTypedAsync(request, validator, r => r.ToCreateDocumentRequest(), tenantContext, sender, ct);
+
+    private static Task<Created<DocumentResponse>> CreateLiquidacionCompra(
+        [FromBody] CreateLiquidacionCompraRequest request,
+        IValidator<CreateLiquidacionCompraRequest> validator,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct) =>
+        ProcessTypedAsync(request, validator, r => r.ToCreateDocumentRequest(), tenantContext, sender, ct);
+
+    private static Task<Created<DocumentResponse>> CreateNotaCredito(
+        [FromBody] CreateNotaCreditoRequest request,
+        IValidator<CreateNotaCreditoRequest> validator,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct) =>
+        ProcessTypedAsync(request, validator, r => r.ToCreateDocumentRequest(), tenantContext, sender, ct);
+
+    private static Task<Created<DocumentResponse>> CreateNotaDebito(
+        [FromBody] CreateNotaDebitoRequest request,
+        IValidator<CreateNotaDebitoRequest> validator,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct) =>
+        ProcessTypedAsync(request, validator, r => r.ToCreateDocumentRequest(), tenantContext, sender, ct);
+
+    private static Task<Created<DocumentResponse>> CreateGuiaRemision(
+        [FromBody] CreateGuiaRemisionRequest request,
+        IValidator<CreateGuiaRemisionRequest> validator,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct) =>
+        ProcessTypedAsync(request, validator, r => r.ToCreateDocumentRequest(), tenantContext, sender, ct);
+
+    private static Task<Created<DocumentResponse>> CreateComprobanteRetencion(
+        [FromBody] CreateComprobanteRetencionRequest request,
+        IValidator<CreateComprobanteRetencionRequest> validator,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct) =>
+        ProcessTypedAsync(request, validator, r => r.ToCreateDocumentRequest(), tenantContext, sender, ct);
+
+    /// <summary>
+    /// Flujo común de los endpoints tipados: valida el request tipado, lo mapea al
+    /// contrato interno CreateDocumentRequest y lo despacha vía el ProcessDocumentCommand compartido.
+    /// Una validación fallida lanza ValidationException → GlobalExceptionHandler responde 422.
+    /// </summary>
+    private static async Task<Created<DocumentResponse>> ProcessTypedAsync<TRequest>(
+        TRequest request,
+        IValidator<TRequest> validator,
+        Func<TRequest, CreateDocumentRequest> map,
+        ITenantContext tenantContext,
+        ISender sender,
+        CancellationToken ct)
+    {
+        var validationResult = await validator.ValidateAsync(request, ct);
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
+
+        var tenantId = GetRequiredTenantId(tenantContext);
+        var command = new ProcessDocumentCommand(tenantId, map(request));
         var result = await sender.Send(command, ct);
         return TypedResults.Created($"/api/v1/documents/{result.Id}", result);
     }
