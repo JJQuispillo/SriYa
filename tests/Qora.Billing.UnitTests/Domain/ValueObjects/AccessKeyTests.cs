@@ -55,7 +55,7 @@ public class AccessKeyTests
         var act = () => new AccessKey("");
 
         act.Should().Throw<InvalidAccessKeyException>()
-            .WithMessage("*empty*");
+            .WithMessage("*vacía*");
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class AccessKeyTests
         var act = () => new AccessKey(null!);
 
         act.Should().Throw<InvalidAccessKeyException>()
-            .WithMessage("*empty*");
+            .WithMessage("*vacía*");
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class AccessKeyTests
         var act = () => new AccessKey("12345678901234567890");
 
         act.Should().Throw<InvalidAccessKeyException>()
-            .WithMessage("*49 digits*");
+            .WithMessage("*49 dígitos*");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class AccessKeyTests
         var act = () => new AccessKey("18032026011792268071001100100100000001237281681A1");
 
         act.Should().Throw<InvalidAccessKeyException>()
-            .WithMessage("*only digits*");
+            .WithMessage("*solo dígitos*");
     }
 
     [Fact]

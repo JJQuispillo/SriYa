@@ -181,7 +181,7 @@ public class GlobalExceptionHandlerTests
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var problemDetails = await JsonSerializer.DeserializeAsync<JsonElement>(context.Response.Body);
-        problemDetails.GetProperty("title").GetString().Should().Be("SRI Service Unavailable");
+        problemDetails.GetProperty("title").GetString().Should().Be("Servicio SRI no disponible");
         problemDetails.GetProperty("status").GetInt32().Should().Be(502);
         problemDetails.GetProperty("detail").GetString().Should().Contain("Connection refused");
     }
@@ -203,7 +203,7 @@ public class GlobalExceptionHandlerTests
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var problemDetails = await JsonSerializer.DeserializeAsync<JsonElement>(context.Response.Body);
-        problemDetails.GetProperty("title").GetString().Should().Be("SRI Service Timeout");
+        problemDetails.GetProperty("title").GetString().Should().Be("Tiempo de espera agotado con SRI");
         problemDetails.GetProperty("status").GetInt32().Should().Be(504);
     }
 

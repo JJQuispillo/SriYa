@@ -32,7 +32,7 @@ public class RucTests
         var act = () => new Ruc("");
 
         act.Should().Throw<InvalidRucException>()
-            .WithMessage("*empty*");
+            .WithMessage("*vacío*");
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class RucTests
         var act = () => new Ruc(null!);
 
         act.Should().Throw<InvalidRucException>()
-            .WithMessage("*empty*");
+            .WithMessage("*vacío*");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class RucTests
         var act = () => new Ruc("12345");
 
         act.Should().Throw<InvalidRucException>()
-            .WithMessage("*13 digits*");
+            .WithMessage("*13 dígitos*");
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class RucTests
         var act = () => new Ruc("179226807A001");
 
         act.Should().Throw<InvalidRucException>()
-            .WithMessage("*only digits*");
+            .WithMessage("*solo dígitos*");
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class RucTests
         var act = () => new Ruc(value);
 
         act.Should().Throw<InvalidRucException>()
-            .WithMessage("*province code*");
+            .WithMessage("*provincia*");
     }
 
     [Fact]

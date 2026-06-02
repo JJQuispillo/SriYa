@@ -143,7 +143,7 @@ public class AccessKeyGeneratorTests
             EnvironmentType.Test, "01", TestEmissionPoint,
             TestSequential, TestNumericCode, EmissionType.Normal);
 
-        act.Should().Throw<ArgumentException>().WithMessage("*Establishment*3*");
+        act.Should().Throw<ArgumentException>().WithMessage("*establecimiento*3*");
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class AccessKeyGeneratorTests
             EnvironmentType.Test, TestEstablishment, TestEmissionPoint,
             "123", TestNumericCode, EmissionType.Normal);
 
-        act.Should().Throw<ArgumentException>().WithMessage("*Sequential*9*");
+        act.Should().Throw<ArgumentException>().WithMessage("*secuencial*9*");
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class AccessKeyGeneratorTests
             EnvironmentType.Test, TestEstablishment, TestEmissionPoint,
             TestSequential, "123", EmissionType.Normal);
 
-        act.Should().Throw<ArgumentException>().WithMessage("*Numeric code*8*");
+        act.Should().Throw<ArgumentException>().WithMessage("*código numérico*8*");
     }
 
     [Fact]

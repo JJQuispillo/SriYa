@@ -95,7 +95,7 @@ public class ProcessDocumentCommandValidatorTests
         var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("13 digits"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("13 dígitos"));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class ProcessDocumentCommandValidatorTests
         var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("quantity"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("cantidad"));
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class ProcessDocumentCommandValidatorTests
         var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("unit price"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("precio unitario"));
     }
 
     // ─── Batch 6: retención TaxRate and sustento field validation tests ─────────
@@ -230,7 +230,7 @@ public class ProcessDocumentCommandValidatorTests
         var command = CreateRetencionCommand(sustentoDocumentType: null);
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("SustentoDocumentType"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("sustento"));
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public class ProcessDocumentCommandValidatorTests
         var command = CreateRetencionCommand(sustentoDocumentType: "99");
         var result = _validator.TestValidate(command);
 
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("SustentoDocumentType") && e.ErrorMessage.Contains("99"));
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("sustento") && e.ErrorMessage.Contains("99"));
     }
 
     [Fact]

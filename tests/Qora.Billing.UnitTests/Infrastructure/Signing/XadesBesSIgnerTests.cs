@@ -135,7 +135,7 @@ public class XadesBesSignerTests
         var act = () => _signer.SignDocumentAsync(xml, [], "pass");
 
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("*empty*");
+            .WithMessage("*vacíos*");
     }
 
     [Fact]

@@ -99,7 +99,7 @@ public class SriRetryServiceTests
     }
 
     [Fact]
-    public async Task ProcessPendingRetriesAsync_WhenSendRejected_ShouldScheduleRetry()
+    public async Task ProcessPendingRetriesAsync_WhenSendReturnsDevuelta_ShouldMarkFailedPermanently()
     {
         var document = CreatePendingRetryDocument(retryCount: 2);
 
@@ -115,9 +115,11 @@ public class SriRetryServiceTests
 
         await service.ProcessPendingRetriesAsync(CancellationToken.None);
 
-        document.Status.Should().Be(DocumentStatus.PendingRetry);
-        document.RetryCount.Should().Be(3);
-        document.NextRetryAt.Should().NotBeNull();
+        // DEVUELTA = error de contenido; reenviar el mismo XML firmado siempre falla
+        // (Ficha Técnica SRI §5.10), por lo que es una falla permanente: NO se programa reintento.
+        document.Status.Should().Be(DocumentStatus.Failed);
+        document.ErrorMessage.Should().Contain("DEVUELTA");
+        document.ErrorMessage.Should().Contain("corrección manual");
         mockDocRepo.Verify(r => r.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -130,16 +132,18 @@ public class SriRetryServiceTests
         mockDocRepo.Setup(r => r.GetPendingRetryAsync(It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { document });
 
+        // Una falla transitoria (excepción) recorre el path de reintento; al alcanzar el
+        // máximo de intentos (#10), se marca como Failed con el mensaje de máximo superado.
         var mockSriClient = new Mock<ISriClient>();
         mockSriClient.Setup(c => c.SendDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SriSendResult(false, "DEVUELTA", new[] { "Persistent error" }));
+            .ThrowsAsync(new HttpRequestException("Persistent error"));
 
         var service = CreateService(mockDocRepo.Object, mockSriClient.Object);
 
         await service.ProcessPendingRetriesAsync(CancellationToken.None);
 
         document.Status.Should().Be(DocumentStatus.Failed);
-        document.ErrorMessage.Should().Contain("Max retries");
+        document.ErrorMessage.Should().Contain("máximo de reintentos");
         document.ErrorMessage.Should().Contain("Persistent error");
     }
 
