@@ -55,7 +55,7 @@ public class ApiKeyAuthenticationTests
                     new CreateApiKeyRequest("Test Auth Key")),
                 CancellationToken.None);
 
-            plaintextKey = result.Key!;
+            plaintextKey = result.Clave!;
         }
 
         // 3. Use the API key to authenticate

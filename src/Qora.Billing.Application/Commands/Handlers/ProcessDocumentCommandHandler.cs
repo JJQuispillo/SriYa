@@ -64,53 +64,53 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         // 3. Crea la entidad Document
         var document = Document.Create(
             command.TenantId,
-            command.Request.DocumentType,
-            command.Request.IssuerInfo,
-            command.Request.BuyerInfo);
+            command.Request.TipoDocumento,
+            command.Request.Emisor,
+            command.Request.Comprador);
 
         // Resuelve la estrategia para este tipo de documento
         var strategy = _strategies.ResolveByDocumentType(document.DocumentType);
 
         // 4. Agrega los ítems (no se usa para GuiaRemision — los ítems viven dentro del Destinatario)
-        if (command.Request.DocumentType != DocumentType.GuiaRemision)
+        if (command.Request.TipoDocumento != DocumentType.GuiaRemision)
         {
-            foreach (var itemDto in command.Request.Items)
+            foreach (var itemDto in command.Request.Detalles)
             {
                 // Deriva el TaxRate de la tabla de referencia del SRI en lugar de confiar en la entrada del llamador
-                var taxCode = await _sriTaxCodeRepository.FindAsync(itemDto.TaxCode, itemDto.TaxPercentageCode, cancellationToken)
+                var taxCode = await _sriTaxCodeRepository.FindAsync(itemDto.CodigoImpuesto, itemDto.CodigoPorcentaje, cancellationToken)
                     ?? throw new BillingDomainException(
-                        $"Código de impuesto '{itemDto.TaxCode}/{itemDto.TaxPercentageCode}' no está registrado.");
+                        $"Código de impuesto '{itemDto.CodigoImpuesto}/{itemDto.CodigoPorcentaje}' no está registrado.");
 
                 var item = DocumentItem.Create(
                     document.Id,
-                    itemDto.MainCode,
-                    itemDto.Description,
-                    itemDto.Quantity,
-                    itemDto.UnitPrice,
-                    itemDto.Discount,
+                    itemDto.CodigoPrincipal,
+                    itemDto.Descripcion,
+                    itemDto.Cantidad,
+                    itemDto.PrecioUnitario,
+                    itemDto.Descuento,
                     taxCode.Rate,
-                    itemDto.TaxCode,
-                    itemDto.TaxPercentageCode,
-                    itemDto.AuxiliaryCode,
-                    itemDto.SustentoDocumentType,
-                    itemDto.SustentoDocumentNumber,
-                    itemDto.SustentoDocumentIssueDate,
-                    itemDto.SustentoDocumentAuthNumber);
+                    itemDto.CodigoImpuesto,
+                    itemDto.CodigoPorcentaje,
+                    itemDto.CodigoAuxiliar,
+                    itemDto.TipoDocSustento,
+                    itemDto.NumDocSustento,
+                    itemDto.FechaEmisionDocSustento,
+                    itemDto.NumAutDocSustento);
                 document.AddItem(item);
             }
         }
 
         // 4b. Agrega los destinatarios para GuiaRemision
-        if (command.Request.DocumentType == DocumentType.GuiaRemision)
+        if (command.Request.TipoDocumento == DocumentType.GuiaRemision)
         {
             var destinatarioDtos = command.Request.Destinatarios;
 
             // Adaptador de compatibilidad hacia atrás: si no se proporcionan Destinatarios, construye uno a partir de BuyerInfo + Items
             if (destinatarioDtos is null || destinatarioDtos.Count == 0)
             {
-                var buyer = command.Request.BuyerInfo;
-                var shimItems = command.Request.Items
-                    .Select(i => new DestinatarioItemDto(i.MainCode, i.Description, i.Quantity))
+                var buyer = command.Request.Comprador;
+                var shimItems = command.Request.Detalles
+                    .Select(i => new DestinatarioItemDto(i.CodigoPrincipal, i.Descripcion, i.Cantidad))
                     .ToList();
 
                 destinatarioDtos =

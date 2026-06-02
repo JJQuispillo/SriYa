@@ -10,7 +10,7 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
 {
     /// <summary>
     /// Conjunto estático de pares válidos (TaxTypeCode, PercentageCode) que refleja la tabla sri_tax_codes precargada.
-    /// Se usa para validación rápida sin una llamada a la base de datos. El TaxRate lo deriva el command handler.
+    /// Se usa para validación rápida sin una llamada a la base de datos. La tasa de impuesto la deriva el command handler.
     /// </summary>
     private static readonly HashSet<(string TaxTypeCode, string PercentageCode)> ValidTaxCodes =
     [
@@ -41,11 +41,11 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
 
         When(x => x.Request is not null, () =>
         {
-            RuleFor(x => x.Request.DocumentType)
+            RuleFor(x => x.Request.TipoDocumento)
                 .IsInEnum()
                 .WithMessage("El tipo de documento debe ser un valor válido.");
 
-            RuleFor(x => x.Request.IssuerInfo)
+            RuleFor(x => x.Request.Emisor)
                 .NotNull()
                 .WithMessage("La información del emisor es requerida.")
                 .Must(info => info != null && info.ContainsKey("ruc") && !string.IsNullOrWhiteSpace(info["ruc"]))
@@ -53,7 +53,7 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
                 .Must(info => info != null && info.ContainsKey("razonSocial") && !string.IsNullOrWhiteSpace(info["razonSocial"]))
                 .WithMessage("La información del emisor debe contener la razón social.");
 
-            RuleFor(x => x.Request.IssuerInfo)
+            RuleFor(x => x.Request.Emisor)
                 .Must(info =>
                 {
                     if (info is null || !info.TryGetValue("ruc", out var ruc)) return false;
@@ -61,105 +61,105 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
                 })
                 .WithMessage("El RUC del emisor debe tener exactamente 13 dígitos.");
 
-            RuleFor(x => x.Request.BuyerInfo)
+            RuleFor(x => x.Request.Comprador)
                 .NotNull()
                 .WithMessage("La información del comprador es requerida.");
 
-            RuleFor(x => x.Request.Items)
+            RuleFor(x => x.Request.Detalles)
                 .NotNull()
                 .WithMessage("La lista de ítems es requerida.")
                 .Must(items => items != null && items.Count > 0)
                 .WithMessage("Se requiere al menos un ítem.");
 
             // Validación a nivel de ítem: reglas comunes (descripción, cantidad, precio, códigos)
-            RuleForEach(x => x.Request.Items).ChildRules(item =>
+            RuleForEach(x => x.Request.Detalles).ChildRules(item =>
             {
-                item.RuleFor(i => i.Description)
+                item.RuleFor(i => i.Descripcion)
                     .NotEmpty()
                     .WithMessage("La descripción del ítem es requerida.");
 
-                item.RuleFor(i => i.Quantity)
+                item.RuleFor(i => i.Cantidad)
                     .GreaterThan(0)
                     .WithMessage("La cantidad del ítem debe ser mayor a 0.");
 
-                item.RuleFor(i => i.UnitPrice)
+                item.RuleFor(i => i.PrecioUnitario)
                     .GreaterThanOrEqualTo(0)
                     .WithMessage("El precio unitario del ítem no puede ser negativo.");
 
-                item.RuleFor(i => i.MainCode)
+                item.RuleFor(i => i.CodigoPrincipal)
                     .NotEmpty()
                     .WithMessage("El código principal del ítem es requerido.");
 
-                item.RuleFor(i => i.TaxCode)
+                item.RuleFor(i => i.CodigoImpuesto)
                     .NotEmpty()
                     .WithMessage("El código de impuesto del ítem es requerido.");
 
-                item.RuleFor(i => i.TaxPercentageCode)
+                item.RuleFor(i => i.CodigoPorcentaje)
                     .NotEmpty()
                     .WithMessage("El código de porcentaje de impuesto del ítem es requerido.");
             });
 
-            // Valida que TaxCode + TaxPercentageCode existan en la tabla de referencia del SRI
+            // Valida que CodigoImpuesto + CodigoPorcentaje existan en la tabla de referencia del SRI
             RuleFor(x => x.Request).Custom((req, ctx) =>
             {
-                if (req.Items is null) return;
-                for (var index = 0; index < req.Items.Count; index++)
+                if (req.Detalles is null) return;
+                for (var index = 0; index < req.Detalles.Count; index++)
                 {
-                    var item = req.Items[index];
-                    if (string.IsNullOrWhiteSpace(item.TaxCode) || string.IsNullOrWhiteSpace(item.TaxPercentageCode))
+                    var item = req.Detalles[index];
+                    if (string.IsNullOrWhiteSpace(item.CodigoImpuesto) || string.IsNullOrWhiteSpace(item.CodigoPorcentaje))
                         continue; // ya capturado por las reglas de campo individuales de arriba
 
-                    if (!ValidTaxCodes.Contains((item.TaxCode, item.TaxPercentageCode)))
+                    if (!ValidTaxCodes.Contains((item.CodigoImpuesto, item.CodigoPorcentaje)))
                     {
                         ctx.AddFailure(new ValidationFailure(
-                            $"Request.Items[{index}].TaxPercentageCode",
-                            $"El código de impuesto '{item.TaxCode}/{item.TaxPercentageCode}' no es válido según la tabla de códigos SRI."));
+                            $"detalles[{index}].codigoPorcentaje",
+                            $"El código de impuesto '{item.CodigoImpuesto}/{item.CodigoPorcentaje}' no es válido según la tabla de códigos SRI."));
                     }
                 }
             });
 
-            When(x => x.Request.DocumentType == DocumentType.ComprobanteRetencion, () =>
+            When(x => x.Request.TipoDocumento == DocumentType.ComprobanteRetencion, () =>
             {
 
                 // T5-002: los ítems de retención deben tener todos los campos de sustento completados
                 RuleFor(x => x.Request).Custom((req, ctx) =>
                 {
-                    if (req.Items is null) return;
-                    for (var index = 0; index < req.Items.Count; index++)
+                    if (req.Detalles is null) return;
+                    for (var index = 0; index < req.Detalles.Count; index++)
                     {
-                        var item = req.Items[index];
+                        var item = req.Detalles[index];
 
-                        if (string.IsNullOrWhiteSpace(item.SustentoDocumentType))
+                        if (string.IsNullOrWhiteSpace(item.TipoDocSustento))
                         {
                             ctx.AddFailure(new ValidationFailure(
-                                $"Request.Items[{index}].SustentoDocumentType",
+                                $"detalles[{index}].tipoDocSustento",
                                 "El tipo de documento de sustento es requerido para ítems de ComprobanteRetencion."));
                         }
-                        else if (!ValidSustentoDocumentTypes.Contains(item.SustentoDocumentType))
+                        else if (!ValidSustentoDocumentTypes.Contains(item.TipoDocSustento))
                         {
                             ctx.AddFailure(new ValidationFailure(
-                                $"Request.Items[{index}].SustentoDocumentType",
-                                $"El tipo de documento de sustento '{item.SustentoDocumentType}' es inválido. Valores válidos de codDocSustento SRI: 01, 03, 04, 05, 07, 41, 43."));
+                                $"detalles[{index}].tipoDocSustento",
+                                $"El tipo de documento de sustento '{item.TipoDocSustento}' es inválido. Valores válidos de codDocSustento SRI: 01, 03, 04, 05, 07, 41, 43."));
                         }
 
-                        if (string.IsNullOrWhiteSpace(item.SustentoDocumentNumber))
+                        if (string.IsNullOrWhiteSpace(item.NumDocSustento))
                         {
                             ctx.AddFailure(new ValidationFailure(
-                                $"Request.Items[{index}].SustentoDocumentNumber",
+                                $"detalles[{index}].numDocSustento",
                                 "El número del documento de sustento es requerido para ítems de ComprobanteRetencion."));
                         }
 
-                        if (string.IsNullOrWhiteSpace(item.SustentoDocumentAuthNumber))
+                        if (string.IsNullOrWhiteSpace(item.NumAutDocSustento))
                         {
                             ctx.AddFailure(new ValidationFailure(
-                                $"Request.Items[{index}].SustentoDocumentAuthNumber",
+                                $"detalles[{index}].numAutDocSustento",
                                 "El número de autorización del documento de sustento es requerido para ítems de ComprobanteRetencion."));
                         }
 
-                        if (item.SustentoDocumentIssueDate is null)
+                        if (item.FechaEmisionDocSustento is null)
                         {
                             ctx.AddFailure(new ValidationFailure(
-                                $"Request.Items[{index}].SustentoDocumentIssueDate",
+                                $"detalles[{index}].fechaEmisionDocSustento",
                                 "La fecha de emisión del documento de sustento es requerida para ítems de ComprobanteRetencion."));
                         }
                     }
@@ -167,16 +167,16 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
             });
 
             // La identificación del comprador es requerida cuando el subtotal supera los $200
-            // Nota: el command handler deriva el TaxRate de la tabla del SRI, por lo que aquí usamos solo el subtotal.
+            // Nota: el command handler deriva la tasa de impuesto de la tabla del SRI, por lo que aquí usamos solo el subtotal.
             RuleFor(x => x.Request)
                 .Must(req =>
                 {
-                    if (req.Items is null || req.Items.Count == 0) return true;
-                    var subtotal = req.Items.Sum(i => (i.Quantity * i.UnitPrice) - i.Discount);
+                    if (req.Detalles is null || req.Detalles.Count == 0) return true;
+                    var subtotal = req.Detalles.Sum(i => (i.Cantidad * i.PrecioUnitario) - i.Descuento);
                     if (subtotal <= 200m) return true;
-                    return req.BuyerInfo != null
-                           && req.BuyerInfo.ContainsKey("identificacion")
-                           && !string.IsNullOrWhiteSpace(req.BuyerInfo["identificacion"]);
+                    return req.Comprador != null
+                           && req.Comprador.ContainsKey("identificacion")
+                           && !string.IsNullOrWhiteSpace(req.Comprador["identificacion"]);
                 })
                 .WithMessage("La identificación del comprador es requerida para comprobantes que superen los $200.");
         });

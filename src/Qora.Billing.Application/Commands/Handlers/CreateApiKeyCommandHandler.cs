@@ -50,8 +50,8 @@ public class CreateApiKeyCommandHandler : IRequestHandler<CreateApiKeyCommand, A
         var apiKey = ApiKey.Create(
             command.TenantId,
             keyHash,
-            command.Request.Name,
-            command.Request.ExpiresAt);
+            command.Request.Nombre,
+            command.Request.FechaExpiracion);
 
         await _apiKeyRepository.CreateAsync(apiKey, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

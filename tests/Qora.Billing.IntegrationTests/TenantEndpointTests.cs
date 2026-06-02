@@ -33,9 +33,9 @@ public class TenantEndpointTests
         var tenant = await response.Content.ReadFromJsonAsync<TenantResponse>();
         Assert.NotNull(tenant);
         tenant!.Ruc.Should().Be("1791234567001");
-        tenant.BusinessName.Should().Be("Integration Test Corp");
-        tenant.TradeName.Should().Be("ITC");
-        tenant.IsActive.Should().BeTrue();
+        tenant.RazonSocial.Should().Be("Integration Test Corp");
+        tenant.NombreComercial.Should().Be("ITC");
+        tenant.Activo.Should().BeTrue();
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class TenantEndpointTests
         var tenant = await getResponse.Content.ReadFromJsonAsync<TenantResponse>();
         Assert.NotNull(tenant);
         tenant!.Id.Should().Be(createdTenant.Id);
-        tenant.BusinessName.Should().Be("Get Test Corp");
+        tenant.RazonSocial.Should().Be("Get Test Corp");
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class TenantEndpointTests
 
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var updated = await updateResponse.Content.ReadFromJsonAsync<TenantResponse>();
-        updated!.BusinessName.Should().Be("Updated Name");
-        updated.TradeName.Should().Be("New Trade");
+        updated!.RazonSocial.Should().Be("Updated Name");
+        updated.NombreComercial.Should().Be("New Trade");
     }
 }

@@ -7,11 +7,11 @@ namespace Qora.Billing.Application.DTOs.Email;
 /// SmtpPassword se excluye intencionalmente por seguridad.
 /// </summary>
 public record EmailSettingsDto(
-    bool EmailEnabled,
-    EmailProvider EmailProvider,
+    bool CorreoHabilitado,
+    EmailProvider ProveedorCorreo,
     string? SmtpHost,
     int? SmtpPort,
     string? SmtpUser,
-    bool UseSsl,
-    string? SenderEmail,
-    string? SenderName);
+    bool UsarSsl,
+    string? CorreoRemitente,
+    string? NombreRemitente);

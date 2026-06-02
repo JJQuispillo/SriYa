@@ -22,11 +22,11 @@ public class UpdateTenantCommandHandler : IRequestHandler<UpdateTenantCommand, T
         var tenant = await _tenantRepository.GetByIdAsync(command.TenantId, cancellationToken)
             ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
 
-        tenant.Update(command.Request.BusinessName, command.Request.TradeName);
+        tenant.Update(command.Request.RazonSocial, command.Request.NombreComercial);
 
-        if (command.Request.IsActive.HasValue)
+        if (command.Request.Activo.HasValue)
         {
-            if (command.Request.IsActive.Value)
+            if (command.Request.Activo.Value)
                 tenant.Activate();
             else
                 tenant.Deactivate();

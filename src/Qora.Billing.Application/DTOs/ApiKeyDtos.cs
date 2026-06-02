@@ -1,13 +1,13 @@
 namespace Qora.Billing.Application.DTOs;
 
 public record CreateApiKeyRequest(
-    string Name,
-    DateTime? ExpiresAt = null);
+    string Nombre,
+    DateTime? FechaExpiracion = null);
 
 public record ApiKeyResponse(
     Guid Id,
-    string Name,
-    string? Key,
-    bool IsActive,
-    DateTime? ExpiresAt,
-    DateTime CreatedAt);
+    string Nombre,
+    string? Clave,
+    bool Activo,
+    DateTime? FechaExpiracion,
+    DateTime FechaCreacion);

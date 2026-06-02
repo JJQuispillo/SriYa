@@ -24,7 +24,7 @@ public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, T
         if (existing is not null)
             throw new BillingDomainException($"Ya existe un tenant con el RUC '{command.Request.Ruc}'.");
 
-        var tenant = Tenant.Create(command.Request.Ruc, command.Request.BusinessName, command.Request.TradeName);
+        var tenant = Tenant.Create(command.Request.Ruc, command.Request.RazonSocial, command.Request.NombreComercial);
         await _tenantRepository.CreateAsync(tenant, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

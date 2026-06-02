@@ -5,16 +5,16 @@ namespace Qora.Billing.Application.DTOs;
 public record DocumentResponse(
     Guid Id,
     Guid TenantId,
-    DocumentType DocumentType,
-    string? AccessKey,
-    DocumentStatus Status,
-    string? AuthorizationNumber,
-    DateTime? AuthorizationDate,
-    string? ErrorMessage,
-    DateTime CreatedAt,
-    DateTime? ProcessedAt);
+    DocumentType TipoDocumento,
+    string? ClaveAcceso,
+    DocumentStatus Estado,
+    string? NumeroAutorizacion,
+    DateTime? FechaAutorizacion,
+    string? MensajeError,
+    DateTime FechaCreacion,
+    DateTime? FechaProcesamiento);
 
 public record DocumentEventResponse(
-    EventType EventType,
-    string Description,
-    DateTime OccurredAt);
+    EventType TipoEvento,
+    string Descripcion,
+    DateTime FechaOcurrencia);

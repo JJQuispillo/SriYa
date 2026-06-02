@@ -17,15 +17,15 @@ public class CreateApiKeyCommandValidator : AbstractValidator<CreateApiKeyComman
 
         When(x => x.Request is not null, () =>
         {
-            RuleFor(x => x.Request.Name)
+            RuleFor(x => x.Request.Nombre)
                 .NotEmpty()
                 .WithMessage("El nombre de la API key es requerido.")
                 .MaximumLength(100)
                 .WithMessage("El nombre de la API key no debe exceder los 100 caracteres.");
 
-            RuleFor(x => x.Request.ExpiresAt)
+            RuleFor(x => x.Request.FechaExpiracion)
                 .GreaterThan(DateTime.UtcNow)
-                .When(x => x.Request.ExpiresAt.HasValue)
+                .When(x => x.Request.FechaExpiracion.HasValue)
                 .WithMessage("La fecha de expiración debe ser en el futuro.");
         });
     }

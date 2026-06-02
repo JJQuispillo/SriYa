@@ -46,6 +46,6 @@ public class CreateTenantCommandValidatorTests
     {
         var command = new CreateTenantCommand(new CreateTenantRequest("1792268071001", ""));
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.Request.BusinessName);
+        result.ShouldHaveValidationErrorFor(x => x.Request.RazonSocial);
     }
 }

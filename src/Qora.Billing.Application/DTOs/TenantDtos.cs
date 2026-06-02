@@ -2,18 +2,18 @@ namespace Qora.Billing.Application.DTOs;
 
 public record CreateTenantRequest(
     string Ruc,
-    string BusinessName,
-    string? TradeName = null);
+    string RazonSocial,
+    string? NombreComercial = null);
 
 public record UpdateTenantRequest(
-    string BusinessName,
-    string? TradeName = null,
-    bool? IsActive = null);
+    string RazonSocial,
+    string? NombreComercial = null,
+    bool? Activo = null);
 
 public record TenantResponse(
     Guid Id,
     string Ruc,
-    string BusinessName,
-    string? TradeName,
-    bool IsActive,
-    DateTime CreatedAt);
+    string RazonSocial,
+    string? NombreComercial,
+    bool Activo,
+    DateTime FechaCreacion);

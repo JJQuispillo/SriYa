@@ -65,7 +65,7 @@ public class ProcessDocumentCommandValidatorTests
         var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.Request.Items);
+        result.ShouldHaveValidationErrorFor(x => x.Request.Detalles);
     }
 
     [Fact]
@@ -159,19 +159,19 @@ public class ProcessDocumentCommandValidatorTests
             new Dictionary<string, string> { { "ruc", "1792268071001" }, { "razonSocial", "Test Corp" } },
             new Dictionary<string, string> { { "identificacion", "9999999999999" }, { "razonSocial", "Sujeto Retenido" } },
             [new DocumentItemDto(
-                MainCode: "303",
-                Description: "Honorarios profesionales",
-                Quantity: 1,
-                UnitPrice: 100m,
-                Discount: 0,
-                TaxRate: taxRate,
-                TaxCode: "1",
-                TaxPercentageCode: "303",
-                AuxiliaryCode: null,
-                SustentoDocumentType: sustentoDocumentType,
-                SustentoDocumentNumber: sustentoDocumentNumber,
-                SustentoDocumentIssueDate: issueDate,
-                SustentoDocumentAuthNumber: sustentoDocumentAuthNumber)]);
+                CodigoPrincipal: "303",
+                Descripcion: "Honorarios profesionales",
+                Cantidad: 1,
+                PrecioUnitario: 100m,
+                Descuento: 0,
+                TasaImpuesto: taxRate,
+                CodigoImpuesto: "1",
+                CodigoPorcentaje: "303",
+                CodigoAuxiliar: null,
+                TipoDocSustento: sustentoDocumentType,
+                NumDocSustento: sustentoDocumentNumber,
+                FechaEmisionDocSustento: issueDate,
+                NumAutDocSustento: sustentoDocumentAuthNumber)]);
 
         return new ProcessDocumentCommand(Guid.NewGuid(), request);
     }
@@ -195,18 +195,18 @@ public class ProcessDocumentCommandValidatorTests
             new Dictionary<string, string> { { "ruc", "1792268071001" }, { "razonSocial", "Test Corp" } },
             new Dictionary<string, string> { { "identificacion", "9999999999999" }, { "razonSocial", "Sujeto Retenido" } },
             [new DocumentItemDto(
-                MainCode: "999",
-                Description: "Honorarios profesionales",
-                Quantity: 1,
-                UnitPrice: 100m,
-                Discount: 0,
-                TaxRate: 0m,
-                TaxCode: "1",
-                TaxPercentageCode: "999",
-                SustentoDocumentType: "01",
-                SustentoDocumentNumber: "001-001-000000001",
-                SustentoDocumentIssueDate: new DateTime(2024, 1, 10),
-                SustentoDocumentAuthNumber: "2401202401179226807100110010010000000991234567890")]);
+                CodigoPrincipal: "999",
+                Descripcion: "Honorarios profesionales",
+                Cantidad: 1,
+                PrecioUnitario: 100m,
+                Descuento: 0,
+                TasaImpuesto: 0m,
+                CodigoImpuesto: "1",
+                CodigoPorcentaje: "999",
+                TipoDocSustento: "01",
+                NumDocSustento: "001-001-000000001",
+                FechaEmisionDocSustento: new DateTime(2024, 1, 10),
+                NumAutDocSustento: "2401202401179226807100110010010000000991234567890")]);
 
         var command = new ProcessDocumentCommand(Guid.NewGuid(), request);
         var result = _validator.TestValidate(command);

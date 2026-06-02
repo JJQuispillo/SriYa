@@ -184,8 +184,8 @@ public class ProcessDocumentCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.NotNull(result);
-        result.Status.Should().Be(DocumentStatus.Authorized);
-        result.AuthorizationNumber.Should().Be("AUTH123");
+        result.Estado.Should().Be(DocumentStatus.Authorized);
+        result.NumeroAutorizacion.Should().Be("AUTH123");
         result.TenantId.Should().Be(tenant.Id);
     }
 
@@ -219,8 +219,8 @@ public class ProcessDocumentCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.NotNull(result);
-        result.Status.Should().Be(DocumentStatus.Rejected);
-        result.ErrorMessage.Should().Contain("CLAVE ACCESO REGISTRADA");
+        result.Estado.Should().Be(DocumentStatus.Rejected);
+        result.MensajeError.Should().Contain("CLAVE ACCESO REGISTRADA");
     }
 
     [Fact]

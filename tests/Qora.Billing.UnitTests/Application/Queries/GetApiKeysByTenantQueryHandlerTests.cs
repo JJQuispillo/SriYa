@@ -36,10 +36,10 @@ public class GetApiKeysByTenantQueryHandlerTests
 
         // Assert
         result.Items.Should().HaveCount(2);
-        result.Page.Should().Be(1);
-        result.PageSize.Should().Be(2);
-        result.TotalCount.Should().Be(3);
-        result.TotalPages.Should().Be(2);
+        result.Pagina.Should().Be(1);
+        result.TamanoPagina.Should().Be(2);
+        result.Total.Should().Be(3);
+        result.TotalPaginas.Should().Be(2);
     }
 
     [Fact]
@@ -63,9 +63,9 @@ public class GetApiKeysByTenantQueryHandlerTests
 
         // Assert
         result.Items.Should().HaveCount(1);
-        result.Items[0].Key.Should().BeNull();
-        result.Items[0].Name.Should().Be("Production Key");
-        result.Items[0].IsActive.Should().BeTrue();
+        result.Items[0].Clave.Should().BeNull();
+        result.Items[0].Nombre.Should().Be("Production Key");
+        result.Items[0].Activo.Should().BeTrue();
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class GetApiKeysByTenantQueryHandlerTests
 
         // Assert
         result.Items.Should().BeEmpty();
-        result.TotalCount.Should().Be(0);
-        result.TotalPages.Should().Be(0);
+        result.Total.Should().Be(0);
+        result.TotalPaginas.Should().Be(0);
     }
 }

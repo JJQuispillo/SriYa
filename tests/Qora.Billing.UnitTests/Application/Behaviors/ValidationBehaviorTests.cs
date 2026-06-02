@@ -24,7 +24,7 @@ public class ValidationBehaviorTests
             CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal("Test", result.BusinessName);
+        Assert.Equal("Test", result.RazonSocial);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ValidationBehaviorTests
     {
         public AlwaysInvalidValidator()
         {
-            RuleFor(x => x.Request.BusinessName)
+            RuleFor(x => x.Request.RazonSocial)
                 .Must(_ => false)
                 .WithMessage("Name is required.");
         }

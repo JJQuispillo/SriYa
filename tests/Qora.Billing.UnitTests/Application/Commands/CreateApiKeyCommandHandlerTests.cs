@@ -33,10 +33,10 @@ public class CreateApiKeyCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.NotNull(result);
-        result.Key.Should().NotBeNullOrEmpty();
-        result.Key.Should().StartWith("qora_live_");
-        result.Name.Should().Be("Production Key");
-        result.IsActive.Should().BeTrue();
+        result.Clave.Should().NotBeNullOrEmpty();
+        result.Clave.Should().StartWith("qora_live_");
+        result.Nombre.Should().Be("Production Key");
+        result.Activo.Should().BeTrue();
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class CreateApiKeyCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         // The stored hash should match SHA-256 of the plaintext key
-        var expectedHash = CreateApiKeyCommandHandler.HashApiKey(result.Key!);
+        var expectedHash = CreateApiKeyCommandHandler.HashApiKey(result.Clave!);
         storedHash.Should().Be(expectedHash);
     }
 
@@ -95,6 +95,6 @@ public class CreateApiKeyCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Key.Should().StartWith("qora_test_");
+        result.Clave.Should().StartWith("qora_test_");
     }
 }
