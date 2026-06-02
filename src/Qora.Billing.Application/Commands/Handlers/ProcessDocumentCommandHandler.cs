@@ -103,31 +103,8 @@ public class ProcessDocumentCommandHandler : IRequestHandler<ProcessDocumentComm
         // 4b. Agrega los destinatarios para GuiaRemision
         if (command.Request.TipoDocumento == DocumentType.GuiaRemision)
         {
-            var destinatarioDtos = command.Request.Destinatarios;
-
-            // Adaptador de compatibilidad hacia atrás: si no se proporcionan Destinatarios, construye uno a partir de BuyerInfo + Items
-            if (destinatarioDtos is null || destinatarioDtos.Count == 0)
-            {
-                var buyer = command.Request.Comprador;
-                var shimItems = command.Request.Detalles
-                    .Select(i => new DestinatarioItemDto(i.CodigoPrincipal, i.Descripcion, i.Cantidad))
-                    .ToList();
-
-                destinatarioDtos =
-                [
-                    new DestinatarioDto(
-                        IdentificacionDestinatario: buyer.GetValueOrDefault("identificacionDestinatario", string.Empty),
-                        RazonSocialDestinatario: buyer.GetValueOrDefault("razonSocialDestinatario", string.Empty),
-                        DirDestinatario: buyer.GetValueOrDefault("dirDestinatario", string.Empty),
-                        MotivoTraslado: buyer.GetValueOrDefault("motivoTraslado", string.Empty),
-                        RucTransportista: buyer.GetValueOrDefault("rucTransportista", string.Empty),
-                        Items: shimItems,
-                        RutaEntrega: buyer.GetValueOrDefault("rutaEntrega"),
-                        DocAduaneroUnico: buyer.GetValueOrDefault("docAduaneroUnico"),
-                        CodEstabDestino: buyer.GetValueOrDefault("codEstabDestino"),
-                        Rise: buyer.GetValueOrDefault("rise"))
-                ];
-            }
+            // El request tipado siempre provee Destinatarios (≥1, validado en el endpoint).
+            var destinatarioDtos = command.Request.Destinatarios ?? [];
 
             foreach (var destDto in destinatarioDtos)
             {

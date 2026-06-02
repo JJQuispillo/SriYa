@@ -2,12 +2,18 @@ using Qora.Billing.Domain.Enums;
 
 namespace Qora.Billing.Application.DTOs;
 
+/// <summary>
+/// Contrato interno (DTO de handler) consumido por <c>ProcessDocumentCommand</c>.
+/// Ya NO es el cuerpo HTTP de ningún endpoint: los endpoints exponen requests
+/// tipados por tipo de documento y los mapean a este DTO mediante
+/// <c>DocumentRequestMappers</c>. Sigue siendo basado en diccionarios porque
+/// IssuerInfo/BuyerInfo se persisten como jsonb y los XML builders los leen así.
+/// </summary>
 public record CreateDocumentRequest(
     DocumentType TipoDocumento,
     Dictionary<string, string> Emisor,
     Dictionary<string, string> Comprador,
     List<DocumentItemDto> Detalles,
-    Dictionary<string, string>? InfoAdicional = null,
     List<DestinatarioDto>? Destinatarios = null);
 
 public record DocumentItemDto(
@@ -16,11 +22,6 @@ public record DocumentItemDto(
     decimal Cantidad,
     decimal PrecioUnitario,
     decimal Descuento,
-    /// <summary>
-    /// Ignorado — el command handler deriva la tasa de impuesto de la tabla de referencia de códigos de impuestos del SRI.
-    /// Se mantiene por compatibilidad hacia atrás; cualquier valor proporcionado se descarta.
-    /// </summary>
-    decimal TasaImpuesto,
     string CodigoImpuesto,
     string CodigoPorcentaje,
     string? CodigoAuxiliar = null,

@@ -91,7 +91,7 @@ public class ProcessDocumentCommandHandlerTests
                 { "tipoIdentificacion", "04" }
             },
             [
-                new DocumentItemDto("PROD001", "Test Product", 2, 50.00m, 0, 15m, "2", "4")
+                new DocumentItemDto("PROD001", "Test Product", 2, 50.00m, 0, "2", "4")
             ]);
 
         return new ProcessDocumentCommand(tenantId, request);

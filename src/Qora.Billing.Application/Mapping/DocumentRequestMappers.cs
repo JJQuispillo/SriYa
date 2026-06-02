@@ -149,7 +149,6 @@ public static class DocumentRequestMappers
                 i.Cantidad,
                 i.PrecioUnitario,
                 i.Descuento,
-                TasaImpuesto: 0m, // Ignorado — el handler deriva la tasa de la tabla SRI.
                 i.CodigoImpuesto,
                 i.CodigoPorcentaje,
                 i.CodigoAuxiliar,
@@ -203,7 +202,6 @@ public static class DocumentRequestMappers
             i.Cantidad,
             i.PrecioUnitario,
             i.Descuento,
-            TasaImpuesto: 0m, // Ignorado — el handler deriva la tasa de la tabla SRI.
             i.CodigoImpuesto,
             i.CodigoPorcentaje,
             i.CodigoAuxiliar)).ToList();
