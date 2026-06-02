@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qora.Billing.Application.Settings;
@@ -26,10 +27,18 @@ public static class DependencyInjection
     {
         // Base de datos
         services.AddDbContext<BillingDbContext>(options =>
+        {
             options.UseNpgsql(
                 configuration.GetConnectionString("BillingDb")
                     ?? "Host=localhost;Database=billing;Username=postgres;Password=postgres",
-                npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(BillingDbContext).Assembly.GetName().Name)));
+                npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(BillingDbContext).Assembly.GetName().Name));
+
+            // TenantConfiguration y ElectronicSignatureConfiguration requieren la clave de
+            // cifrado por constructor, por lo que se aplican manualmente en OnModelCreating y
+            // se excluyen del scan del assembly. EF igual las detecta durante el scan y emite
+            // este warning; lo silenciamos porque es esperado y benigno.
+            options.ConfigureWarnings(w => w.Ignore(CoreEventId.SkippedEntityTypeConfigurationWarning));
+        });
 
         // Repositorios
         services.AddScoped<IDocumentRepository, DocumentRepository>();

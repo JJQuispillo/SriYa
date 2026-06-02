@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Qora.Billing.Domain.Entities;
@@ -62,16 +63,28 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
             v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null)
                 ?? new Dictionary<string, string>());
 
+        // Comparer requerido por EF para propiedades de tipo colección con converter:
+        // permite el snapshot y la detección de cambios correcta (igualdad por contenido,
+        // no por referencia, y copia profunda al tomar el snapshot).
+        var dictionaryComparer = new ValueComparer<Dictionary<string, string>>(
+            (a, b) => a == null
+                ? b == null
+                : b != null && a.Count == b.Count && !a.Except(b).Any(),
+            v => v == null
+                ? 0
+                : v.Aggregate(0, (hash, kv) => HashCode.Combine(hash, kv.Key.GetHashCode(), kv.Value.GetHashCode())),
+            v => v == null ? new Dictionary<string, string>() : new Dictionary<string, string>(v));
+
         builder.Property(d => d.IssuerInfo)
             .HasColumnName("issuer_info")
             .HasColumnType("jsonb")
-            .HasConversion(dictionaryConverter)
+            .HasConversion(dictionaryConverter, dictionaryComparer)
             .IsRequired();
 
         builder.Property(d => d.BuyerInfo)
             .HasColumnName("buyer_info")
             .HasColumnType("jsonb")
-            .HasConversion(dictionaryConverter)
+            .HasConversion(dictionaryConverter, dictionaryComparer)
             .IsRequired();
 
         builder.Property(d => d.ErrorMessage)
