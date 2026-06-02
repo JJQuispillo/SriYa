@@ -20,7 +20,10 @@ public class TenantIdHeaderFilter : IOperationFilter
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var path = context.ApiDescription.RelativePath;
-        if (path is not null && ExcludedPaths.Contains("/" + path))
+        // Normalizar: la RelativePath puede venir con/sin slash inicial o final
+        // (p. ej. "api/v1/tenants/" para MapPost("/") sobre un grupo), por lo que
+        // se compara sin slashes en los extremos para que la exclusión sea robusta.
+        if (path is not null && ExcludedPaths.Contains("/" + path.Trim('/')))
             return;
 
         operation.Parameters ??= new List<OpenApiParameter>();
@@ -30,7 +33,8 @@ public class TenantIdHeaderFilter : IOperationFilter
             Name = "X-Tenant-Id",
             In = ParameterLocation.Header,
             Required = false,
-            Description = "Tenant ID (used with X-Service-Token authentication to specify target tenant)",
+            Description = "Opcional. Solo con autenticación X-Service-Token, para indicar sobre qué empresa (tenant) operar. " +
+                          "Es el 'id' devuelto al crear la empresa. Déjalo vacío si usas X-Api-Key.",
             Schema = new OpenApiSchema
             {
                 Type = "string",
