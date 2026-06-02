@@ -42,7 +42,12 @@ curl http://localhost:8080/health
 |---|---|---|
 | `/health` | GET | Liveness check |
 | `/health/ready` | GET | Readiness check (includes DB) |
-| `/api/documents` | POST | Create and process an electronic document |
+| `/api/v1/documents/facturas` | POST | Create and submit a Factura (01) |
+| `/api/v1/documents/liquidaciones-compra` | POST | Create and submit a Liquidación de Compra (03) |
+| `/api/v1/documents/notas-credito` | POST | Create and submit a Nota de Crédito (04) |
+| `/api/v1/documents/notas-debito` | POST | Create and submit a Nota de Débito (05) |
+| `/api/v1/documents/guias-remision` | POST | Create and submit a Guía de Remisión (06) |
+| `/api/v1/documents/retenciones` | POST | Create and submit a Comprobante de Retención (07) |
 | `/api/documents/{id}` | GET | Get document by ID |
 | `/api/documents` | GET | List documents (paginated, filtered by tenant) |
 | `/api/documents/{id}/void` | POST | Void/annul a document |
