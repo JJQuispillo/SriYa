@@ -4,9 +4,9 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace Qora.Billing.Api.Swagger;
 
 /// <summary>
-/// Adds an optional X-Tenant-Id header parameter to every Swagger operation.
-/// This header is required when using service-token authentication to specify
-/// which tenant the operation targets (e.g., creating API keys).
+/// Agrega un parámetro de encabezado opcional X-Tenant-Id a cada operación de Swagger.
+/// Este encabezado es requerido cuando se usa autenticación con service-token para especificar
+/// a qué tenant apunta la operación (por ejemplo, al crear API keys).
 /// </summary>
 public class TenantIdHeaderFilter : IOperationFilter
 {

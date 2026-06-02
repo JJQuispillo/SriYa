@@ -3,18 +3,18 @@ using Qora.Billing.Domain.Entities;
 namespace Qora.Billing.Domain.Interfaces;
 
 /// <summary>
-/// Sends email notifications for billing documents.
+/// Envía notificaciones por email para documentos de facturación.
 /// </summary>
 public interface IEmailService
 {
     /// <summary>
-    /// Sends the authorized document to the buyer's email address.
-    /// Returns true if sent successfully, false if email is disabled or recipient is missing.
+    /// Envía el documento autorizado a la dirección de email del comprador.
+    /// Devuelve true si se envió correctamente, false si el email está deshabilitado o falta el destinatario.
     /// </summary>
     Task<bool> SendDocumentEmailAsync(Document document, Tenant tenant, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Tests the SMTP connection using the provided configuration.
+    /// Prueba la conexión SMTP usando la configuración proporcionada.
     /// </summary>
     Task<bool> TestConnectionAsync(ValueObjects.EmailConfiguration configuration, CancellationToken cancellationToken = default);
 }

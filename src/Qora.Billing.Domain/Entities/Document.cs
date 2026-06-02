@@ -17,12 +17,12 @@ public class Document : BaseEntity
     public DateTime? SriAuthorizationDate { get; private set; }
 
     /// <summary>
-    /// Issuer information stored as JSON-ready dictionary for flexibility across document types.
+    /// Información del emisor almacenada como diccionario listo para JSON, para dar flexibilidad entre tipos de documento.
     /// </summary>
     public Dictionary<string, string> IssuerInfo { get; private set; } = new();
 
     /// <summary>
-    /// Buyer/receiver information stored as JSON-ready dictionary.
+    /// Información del comprador/receptor almacenada como diccionario listo para JSON.
     /// </summary>
     public Dictionary<string, string> BuyerInfo { get; private set; } = new();
 
@@ -161,7 +161,7 @@ public class Document : BaseEntity
     }
 
     /// <summary>
-    /// Valid status transitions for the document state machine.
+    /// Transiciones de estado válidas para la máquina de estados del documento.
     /// </summary>
     private static readonly Dictionary<DocumentStatus, DocumentStatus[]> ValidTransitions = new()
     {

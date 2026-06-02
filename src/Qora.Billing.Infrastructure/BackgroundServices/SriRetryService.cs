@@ -7,8 +7,8 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.BackgroundServices;
 
 /// <summary>
-/// Background service that periodically polls for documents with PendingRetry status
-/// and re-sends them to SRI. Uses exponential backoff with a cap of 4 hours.
+/// Servicio en segundo plano que periódicamente consulta (polling) los documentos con estado PendingRetry
+/// y los reenvía al SRI. Usa exponential backoff con un tope de 4 horas.
 /// </summary>
 public class SriRetryService : BackgroundService
 {
@@ -16,22 +16,22 @@ public class SriRetryService : BackgroundService
     private readonly ILogger<SriRetryService> _logger;
 
     /// <summary>
-    /// Polling interval: how often the service checks for documents ready to retry.
+    /// Intervalo de polling: con qué frecuencia el servicio revisa si hay documentos listos para reintentar.
     /// </summary>
     internal static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// Maximum number of retry attempts before marking a document as Failed.
+    /// Número máximo de intentos de reintento antes de marcar un documento como Failed.
     /// </summary>
     internal const int MaxRetries = 10;
 
     /// <summary>
-    /// Base delay for exponential backoff (5 minutes).
+    /// Retardo base para el exponential backoff (5 minutos).
     /// </summary>
     private static readonly TimeSpan BaseDelay = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// Maximum delay cap for exponential backoff (4 hours).
+    /// Tope máximo de retardo para el exponential backoff (4 horas).
     /// </summary>
     private static readonly TimeSpan MaxDelay = TimeSpan.FromHours(4);
 
@@ -103,15 +103,15 @@ public class SriRetryService : BackgroundService
 
         try
         {
-            // Re-send the signed XML to SRI
+            // Reenviar el XML firmado al SRI
             var sendResult = await sriClient.SendDocumentAsync(
                 document.SignedXmlContent!, cancellationToken);
 
             if (!sendResult.IsAccepted)
             {
-                // SRI returned DEVUELTA: the document has a content error.
-                // Per SRI Ficha Técnica §5.10, re-sending the same signed XML will always fail.
-                // This is a permanent failure that requires human correction — do NOT schedule retries.
+                // El SRI devolvió DEVUELTA: el documento tiene un error de contenido.
+                // Según la Ficha Técnica del SRI §5.10, reenviar el mismo XML firmado siempre fallará.
+                // Es una falla permanente que requiere corrección humana — NO programar reintentos.
                 var sriError = string.Join("; ", sendResult.Messages);
                 var errorMsg = $"SRI rechazó el documento (DEVUELTA): {sriError}. Se requiere corrección manual antes de reenviar.";
                 _logger.LogWarning(
@@ -123,7 +123,7 @@ public class SriRetryService : BackgroundService
                 return;
             }
 
-            // Check authorization status
+            // Verificar el estado de autorización
             var authResult = await sriClient.CheckAuthorizationAsync(
                 document.AccessKey!.Value, cancellationToken);
 
@@ -154,10 +154,10 @@ public class SriRetryService : BackgroundService
 
     private void HandleRetryFailure(Domain.Entities.Document document, string errorMessage)
     {
-        // Transition to Rejected first (required by domain state machine before ScheduleRetry)
+        // Transicionar primero a Rejected (requerido por la máquina de estados del dominio antes de ScheduleRetry)
         document.Reject(errorMessage);
 
-        // Check if max retries exceeded (RetryCount is current count before the next ScheduleRetry increment)
+        // Verificar si se superó el máximo de reintentos (RetryCount es el conteo actual antes del siguiente incremento de ScheduleRetry)
         if (document.RetryCount + 1 >= MaxRetries)
         {
             document.MarkFailed($"Se superó el máximo de reintentos ({MaxRetries}). Último error: {errorMessage}");
@@ -176,9 +176,9 @@ public class SriRetryService : BackgroundService
     }
 
     /// <summary>
-    /// Calculates the next retry time using exponential backoff.
-    /// Pattern: 5min, 10min, 20min, 40min, 1h20m, 2h40m, 4h (cap).
-    /// Formula: min(BaseDelay * 2^retryCount, MaxDelay)
+    /// Calcula el siguiente momento de reintento usando exponential backoff.
+    /// Patrón: 5min, 10min, 20min, 40min, 1h20m, 2h40m, 4h (tope).
+    /// Fórmula: min(BaseDelay * 2^retryCount, MaxDelay)
     /// </summary>
     internal static DateTime CalculateNextRetryTime(int currentRetryCount)
     {
@@ -187,12 +187,12 @@ public class SriRetryService : BackgroundService
     }
 
     /// <summary>
-    /// Calculates the backoff delay for a given retry count.
-    /// Exposed internally for testing.
+    /// Calcula el retardo de backoff para un conteo de reintentos dado.
+    /// Expuesto internamente para pruebas.
     /// </summary>
     internal static TimeSpan CalculateBackoffDelay(int currentRetryCount)
     {
-        // 2^retryCount * BaseDelay, capped at MaxDelay
+        // 2^retryCount * BaseDelay, limitado a MaxDelay
         var multiplier = Math.Pow(2, currentRetryCount);
         var delayMinutes = BaseDelay.TotalMinutes * multiplier;
         var delay = TimeSpan.FromMinutes(Math.Min(delayMinutes, MaxDelay.TotalMinutes));

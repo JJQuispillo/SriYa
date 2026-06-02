@@ -9,8 +9,8 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Xml;
 
 /// <summary>
-/// Generates unsigned XML for Liquidación de Compra documents following SRI XSD v1.1.0 schema.
-/// Uses System.Xml.Linq for cleaner XML construction.
+/// Genera el XML sin firmar para documentos Liquidación de Compra siguiendo el esquema XSD v1.1.0 del SRI.
+/// Usa System.Xml.Linq para una construcción de XML más limpia.
 /// </summary>
 public class LiquidacionCompraXmlBuilder : IXmlGenerator
 {
@@ -18,7 +18,7 @@ public class LiquidacionCompraXmlBuilder : IXmlGenerator
     {
         if (document.DocumentType != DocumentType.LiquidacionCompra)
             throw new DocumentValidationException(
-                $"LiquidacionCompraXmlBuilder only supports LiquidacionCompra documents, got {document.DocumentType}.");
+                $"LiquidacionCompraXmlBuilder solo soporta documentos de tipo LiquidacionCompra, se recibió {document.DocumentType}.");
 
         var xml = BuildLiquidacionCompraXml(document);
         return Task.FromResult(xml);
@@ -36,7 +36,7 @@ public class LiquidacionCompraXmlBuilder : IXmlGenerator
             BuildDetalles(document),
             BuildInfoAdicional(document));
 
-        // UTF-8 without BOM
+        // UTF-8 sin BOM
         var settings = new System.Xml.XmlWriterSettings
         {
             Encoding = new UTF8Encoding(false),
@@ -83,7 +83,7 @@ public class LiquidacionCompraXmlBuilder : IXmlGenerator
         var totalDescuento = document.Items.Sum(i => i.Discount);
         var totalIva = document.Items.Sum(i => i.Subtotal * i.TaxRate / 100m);
 
-        // Determine retention amount (optional)
+        // Determinar el monto de retención (opcional)
         decimal retentionValue = 0m;
         var hasRetention = issuer.TryGetValue("codigoRetencion", out var codigoRetencion)
             && !string.IsNullOrWhiteSpace(codigoRetencion);
@@ -111,7 +111,7 @@ public class LiquidacionCompraXmlBuilder : IXmlGenerator
             new XElement("totalDescuento", totalDescuento.ToString("F2", CultureInfo.InvariantCulture)),
             BuildTotalConImpuestos(document));
 
-        // Emit optional retention block only when codigoRetencion is present
+        // Emitir el bloque opcional de retención solo cuando codigoRetencion está presente
         if (hasRetention)
         {
             infoLiquidacion.Add(new XElement("retencion",
@@ -224,8 +224,8 @@ public class LiquidacionCompraXmlBuilder : IXmlGenerator
     }
 
     /// <summary>
-    /// Validates that all required fields from LiquidacionCompraConstants are present
-    /// in the document before XML generation proceeds.
+    /// Valida que todos los campos obligatorios de LiquidacionCompraConstants estén presentes
+    /// en el documento antes de proceder con la generación del XML.
     /// </summary>
     private static void ValidateRequiredFields(Document document)
     {

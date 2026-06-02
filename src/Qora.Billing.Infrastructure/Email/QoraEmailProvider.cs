@@ -9,7 +9,7 @@ using Qora.Billing.Domain.ValueObjects;
 namespace Qora.Billing.Infrastructure.Email;
 
 /// <summary>
-/// SMTP email provider that uses the Qora platform SMTP credentials from appsettings.
+/// Proveedor de email SMTP que usa las credenciales SMTP de la plataforma Qora desde appsettings.
 /// </summary>
 public class QoraEmailProvider(
     IOptions<QoraEmailSettings> options,

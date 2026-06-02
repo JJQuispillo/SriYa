@@ -1,8 +1,8 @@
 namespace Qora.Billing.Domain.Entities;
 
 /// <summary>
-/// Represents a transported item (detalle) within a GuiaRemision destinatario.
-/// Intentionally slim — no tax fields (not applicable for transport documents).
+/// Representa un ítem transportado (detalle) dentro de un destinatario de GuiaRemision.
+/// Intencionalmente reducido — sin campos de impuestos (no aplican a documentos de transporte).
 /// </summary>
 public class DestinatarioItem : BaseEntity
 {

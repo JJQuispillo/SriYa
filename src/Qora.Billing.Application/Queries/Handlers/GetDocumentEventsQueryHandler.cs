@@ -21,7 +21,7 @@ public class GetDocumentEventsQueryHandler : IRequestHandler<GetDocumentEventsQu
     public async Task<List<DocumentEventResponse>> Handle(
         GetDocumentEventsQuery query, CancellationToken cancellationToken)
     {
-        // Verify document belongs to tenant
+        // Verifica que el documento pertenezca al tenant
         var document = await _documentRepository.GetByIdAsync(query.DocumentId, cancellationToken);
         if (document is null || document.TenantId != query.TenantId)
             throw new BillingDomainException($"Documento {query.DocumentId} no encontrado para el tenant {query.TenantId}.");

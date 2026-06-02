@@ -8,8 +8,8 @@ using Qora.Billing.Infrastructure.Persistence.Configurations;
 namespace Qora.Billing.Infrastructure.Persistence;
 
 /// <summary>
-/// EF Core DbContext for the Billing microservice.
-/// Provides multi-tenant global query filters, automatic timestamps, and domain event dispatching.
+/// DbContext de EF Core para el microservicio de Billing.
+/// Provee global query filters multi-tenant, timestamps automáticos y despacho de eventos de dominio.
 /// </summary>
 public class BillingDbContext : DbContext
 {
@@ -41,8 +41,8 @@ public class BillingDbContext : DbContext
     }
 
     /// <summary>
-    /// Sets the current tenant for global query filter scoping.
-    /// Must be called before querying tenant-scoped entities.
+    /// Establece el tenant actual para el alcance del global query filter.
+    /// Debe llamarse antes de consultar entidades acotadas por tenant.
     /// </summary>
     public void SetTenantId(Guid tenantId)
     {
@@ -53,17 +53,17 @@ public class BillingDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all configurations from assembly (excludes those that need the encryption key)
+        // Aplicar todas las configuraciones del assembly (excluye las que necesitan la clave de cifrado)
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(BillingDbContext).Assembly,
             t => t != typeof(TenantConfiguration)
                  && t != typeof(ElectronicSignatureConfiguration));
 
-        // Apply key-dependent configurations separately to pass the encryption key
+        // Aplicar por separado las configuraciones que dependen de la clave para pasar la clave de cifrado
         modelBuilder.ApplyConfiguration(new TenantConfiguration(_encryptionKey));
         modelBuilder.ApplyConfiguration(new ElectronicSignatureConfiguration(_encryptionKey));
 
-        // Global query filters for multi-tenancy
+        // Global query filters para multi-tenancy
         modelBuilder.Entity<Document>()
             .HasQueryFilter(d => !_currentTenantId.HasValue || d.TenantId == _currentTenantId.Value);
 
@@ -90,7 +90,7 @@ public class BillingDbContext : DbContext
     }
 
     /// <summary>
-    /// Automatically sets CreatedAt and UpdatedAt timestamps on BaseEntity-derived entities.
+    /// Establece automáticamente los timestamps CreatedAt y UpdatedAt en las entidades derivadas de BaseEntity.
     /// </summary>
     private void SetTimestamps()
     {
@@ -114,8 +114,8 @@ public class BillingDbContext : DbContext
     }
 
     /// <summary>
-    /// Collects domain events from all tracked entities before saving.
-    /// Events are cleared from entities to prevent duplicate dispatching.
+    /// Recolecta los eventos de dominio de todas las entidades rastreadas antes de guardar.
+    /// Los eventos se limpian de las entidades para evitar despachos duplicados.
     /// </summary>
     private List<DomainEvent> CollectDomainEvents()
     {
@@ -137,8 +137,8 @@ public class BillingDbContext : DbContext
     }
 
     /// <summary>
-    /// Dispatches collected domain events via MediatR IPublisher.
-    /// Events are published after SaveChanges completes to ensure data consistency.
+    /// Despacha los eventos de dominio recolectados mediante el IPublisher de MediatR.
+    /// Los eventos se publican después de que SaveChanges finaliza para garantizar la consistencia de los datos.
     /// </summary>
     private async Task DispatchDomainEvents(List<DomainEvent> domainEvents)
     {

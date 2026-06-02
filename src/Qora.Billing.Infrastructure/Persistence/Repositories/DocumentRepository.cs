@@ -23,7 +23,7 @@ public class DocumentRepository : IDocumentRepository
     public async Task<Document?> GetByAccessKeyAsync(string accessKey, CancellationToken cancellationToken = default)
     {
         return await _context.Documents
-            .IgnoreQueryFilters() // AccessKey lookup is cross-tenant by design
+            .IgnoreQueryFilters() // la búsqueda por AccessKey es entre tenants por diseño
             .Include(d => d.Items)
             .FirstOrDefaultAsync(d => d.AccessKey != null && d.AccessKey.Value == accessKey, cancellationToken);
     }
@@ -50,7 +50,7 @@ public class DocumentRepository : IDocumentRepository
         DateTime before, int maxResults = 100, CancellationToken cancellationToken = default)
     {
         return await _context.Documents
-            .IgnoreQueryFilters() // Retry processing is cross-tenant
+            .IgnoreQueryFilters() // el procesamiento de reintentos es entre tenants
             .Where(d => d.Status == Domain.Enums.DocumentStatus.PendingRetry
                         && d.NextRetryAt.HasValue
                         && d.NextRetryAt.Value <= before)

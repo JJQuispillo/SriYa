@@ -8,8 +8,8 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Sri;
 
 /// <summary>
-/// SOAP client for SRI web services. Uses HttpClient directly (no WCF dependency).
-/// Two operations: validarComprobante (send) and autorizacionComprobante (check authorization).
+/// Cliente SOAP para los servicios web del SRI. Usa HttpClient directamente (sin dependencia de WCF).
+/// Dos operaciones: validarComprobante (enviar) y autorizacionComprobante (verificar autorización).
 /// </summary>
 public class SriSoapClient : ISriClient
 {
@@ -30,8 +30,8 @@ public class SriSoapClient : ISriClient
     }
 
     /// <summary>
-    /// Sends a signed XML to SRI's validarComprobante endpoint.
-    /// The XML is sent as a Base64-encoded byte array inside the SOAP envelope.
+    /// Envía un XML firmado al endpoint validarComprobante del SRI.
+    /// El XML se envía como un arreglo de bytes codificado en Base64 dentro del SOAP envelope.
     /// </summary>
     public async Task<SriSendResult> SendDocumentAsync(string signedXml, CancellationToken cancellationToken = default)
     {
@@ -58,7 +58,7 @@ public class SriSoapClient : ISriClient
     }
 
     /// <summary>
-    /// Checks the authorization status of a document by its access key.
+    /// Verifica el estado de autorización de un documento por su clave de acceso.
     /// </summary>
     public async Task<SriAuthorizationResult> CheckAuthorizationAsync(string accessKey,
         CancellationToken cancellationToken = default)
@@ -138,16 +138,16 @@ public class SriSoapClient : ISriClient
     {
         var doc = XDocument.Parse(responseXml);
 
-        // Navigate SOAP envelope to find the response body
+        // Navegar el SOAP envelope para encontrar el body de la respuesta
         var body = doc.Descendants(SoapNs + "Body").FirstOrDefault()
             ?? throw new InvalidOperationException("Respuesta SOAP inválida: falta el elemento Body.");
 
-        // SRI returns estado = RECIBIDA or DEVUELTA
+        // El SRI devuelve estado = RECIBIDA o DEVUELTA
         var estado = body.Descendants("estado").FirstOrDefault()?.Value ?? "UNKNOWN";
         var isAccepted = estado.Equals("RECIBIDA", StringComparison.OrdinalIgnoreCase);
 
         var messages = body.Descendants("mensaje")
-            .Where(m => m.HasElements) // Only container <mensaje> elements, not leaf text elements
+            .Where(m => m.HasElements) // Solo elementos <mensaje> contenedores, no elementos de texto hoja
             .Select(m =>
             {
                 var identifier = m.Element("identificador")?.Value ?? "";
@@ -169,12 +169,12 @@ public class SriSoapClient : ISriClient
         var body = doc.Descendants(SoapNs + "Body").FirstOrDefault()
             ?? throw new InvalidOperationException("Respuesta SOAP inválida: falta el elemento Body.");
 
-        // Look for autorizacion element inside the response
+        // Buscar el elemento autorizacion dentro de la respuesta
         var autorizacion = body.Descendants("autorizacion").FirstOrDefault();
 
         if (autorizacion is null)
         {
-            // No authorization found — may be pending
+            // No se encontró autorización — puede estar pendiente
             var numAutorizaciones = body.Descendants("numeroComprobantes").FirstOrDefault()?.Value ?? "0";
             return new SriAuthorizationResult(
                 false, null, null,
@@ -194,7 +194,7 @@ public class SriSoapClient : ISriClient
         }
 
         var messages = autorizacion.Descendants("mensaje")
-            .Where(m => m.HasElements) // Only container <mensaje> elements, not leaf text elements
+            .Where(m => m.HasElements) // Solo elementos <mensaje> contenedores, no elementos de texto hoja
             .Select(m =>
             {
                 var identifier = m.Element("identificador")?.Value ?? "";

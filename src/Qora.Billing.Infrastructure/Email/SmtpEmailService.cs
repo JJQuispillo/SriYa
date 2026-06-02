@@ -11,9 +11,9 @@ using Qora.Billing.Domain.ValueObjects;
 namespace Qora.Billing.Infrastructure.Email;
 
 /// <summary>
-/// Orchestrates email delivery for authorized billing documents.
-/// Selects the correct SMTP provider (Qora or Custom) based on the tenant's configuration,
-/// attaches the RIDE PDF, and wraps the send in a Polly retry pipeline.
+/// Orquesta el envío de email para los documentos de facturación autorizados.
+/// Selecciona el proveedor SMTP correcto (Qora o Custom) según la configuración del tenant,
+/// adjunta el RIDE PDF, y envuelve el envío en un pipeline de retry de Polly.
 /// </summary>
 public class SmtpEmailService(
     QoraEmailProvider qoraEmailProvider,
@@ -42,7 +42,7 @@ public class SmtpEmailService(
             return false;
         }
 
-        // Determine recipient from BuyerInfo dictionary
+        // Determinar el destinatario a partir del diccionario BuyerInfo
         var recipientEmail = document.BuyerInfo.GetValueOrDefault("correo",
                              document.BuyerInfo.GetValueOrDefault("email",
                              document.BuyerInfo.GetValueOrDefault("correoComprador", string.Empty)));
@@ -67,7 +67,7 @@ public class SmtpEmailService(
             _ => "Comprobante Electrónico"
         };
 
-        // Select config and provider based on tenant's provider choice
+        // Seleccionar la configuración y el proveedor según la elección de proveedor del tenant
         EmailConfiguration config;
         IEmailProvider provider;
 
@@ -82,10 +82,10 @@ public class SmtpEmailService(
             provider = qoraEmailProvider;
         }
 
-        // Build attachments
+        // Construir los adjuntos
         var attachments = new List<EmailAttachment>();
 
-        // RIDE PDF attachment
+        // Adjunto del RIDE PDF
         try
         {
             var pdfBytes = await rideGenerator.GeneratePdfAsync(document, cancellationToken);
@@ -102,7 +102,7 @@ public class SmtpEmailService(
             logger.LogWarning(ex, "Failed to generate RIDE PDF for email attachment on document {DocumentId}", document.Id);
         }
 
-        // XML attachment (signed XML)
+        // Adjunto del XML (XML firmado)
         if (!string.IsNullOrWhiteSpace(document.SignedXmlContent))
         {
             var accessKey = document.AccessKey?.Value ?? document.Id.ToString();
@@ -149,7 +149,7 @@ public class SmtpEmailService(
     {
         try
         {
-            // For testing we always use the custom provider since we're testing a specific config
+            // Para las pruebas siempre usamos el proveedor custom porque estamos probando una configuración específica
             await customEmailProvider.TestConnectionAsync(configuration, cancellationToken);
             logger.LogInformation("SMTP connection test succeeded for host {SmtpHost}", configuration.SmtpHost);
             return true;

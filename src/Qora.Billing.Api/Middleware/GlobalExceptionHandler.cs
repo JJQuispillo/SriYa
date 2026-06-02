@@ -6,8 +6,8 @@ using Qora.Billing.Domain.Exceptions;
 namespace Qora.Billing.Api.Middleware;
 
 /// <summary>
-/// Global exception handler implementing IExceptionHandler (.NET 8+).
-/// Maps domain exceptions to appropriate HTTP status codes with RFC 7807 ProblemDetails.
+/// Manejador global de excepciones que implementa IExceptionHandler (.NET 8+).
+/// Mapea las excepciones del dominio a los códigos de estado HTTP apropiados con ProblemDetails según RFC 7807.
 /// </summary>
 public class GlobalExceptionHandler : IExceptionHandler
 {
@@ -131,11 +131,11 @@ public class GlobalExceptionHandler : IExceptionHandler
             }
         };
 
-        // Add traceId to all ProblemDetails for correlation
+        // Agrega traceId a todos los ProblemDetails para correlación
         var traceId = System.Diagnostics.Activity.Current?.Id ?? httpContext.TraceIdentifier;
         problemDetails.Extensions["traceId"] = traceId;
 
-        // Log based on severity — never log sensitive data
+        // Registra según la severidad — nunca registrar datos sensibles
         if (problemDetails.Status >= 500)
         {
             _logger.LogError(exception, "Unhandled exception: {ExceptionType}", exception.GetType().Name);

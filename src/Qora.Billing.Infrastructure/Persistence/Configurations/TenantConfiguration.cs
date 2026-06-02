@@ -48,7 +48,7 @@ public class TenantConfiguration(string encryptionKey) : IEntityTypeConfiguratio
             .HasColumnName("updated_at")
             .IsRequired();
 
-        // Relationships
+        // Relaciones
         builder.HasMany<Document>()
             .WithOne()
             .HasForeignKey(d => d.TenantId)
@@ -68,12 +68,12 @@ public class TenantConfiguration(string encryptionKey) : IEntityTypeConfiguratio
             .HasColumnName("contact_email")
             .HasMaxLength(255);
 
-        // Indexes
+        // Índices
         builder.HasIndex(t => t.Ruc)
             .IsUnique()
             .HasDatabaseName("ix_tenants_ruc");
 
-        // ── Email delivery settings ──────────────────────────────────
+        // ── Configuración de envío de email ──────────────────────────────────
         builder.Property(t => t.EmailEnabled)
             .HasColumnName("email_enabled")
             .HasDefaultValue(false)
@@ -113,7 +113,7 @@ public class TenantConfiguration(string encryptionKey) : IEntityTypeConfiguratio
             .HasColumnName("sender_name")
             .HasMaxLength(255);
 
-        // Ignore domain events collection
+        // Ignorar la colección de eventos de dominio
         builder.Ignore(t => t.DomainEvents);
     }
 }

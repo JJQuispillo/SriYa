@@ -5,8 +5,8 @@ using Qora.Billing.Infrastructure.Persistence;
 namespace Qora.Billing.Api.Endpoints;
 
 /// <summary>
-/// Health check endpoints for liveness and readiness probes.
-/// No authentication required.
+/// Endpoints de health check para las sondas de liveness y readiness.
+/// No requieren autenticación.
 /// </summary>
 public static class HealthEndpoints
 {

@@ -7,8 +7,8 @@ using Qora.Billing.Domain.ValueObjects;
 namespace Qora.Billing.Infrastructure.Email;
 
 /// <summary>
-/// SMTP email provider that uses the tenant's own custom SMTP credentials.
-/// Configuration is taken from the EmailMessage.Configuration property at send time.
+/// Proveedor de email SMTP que usa las credenciales SMTP personalizadas propias del tenant.
+/// La configuración se toma de la propiedad EmailMessage.Configuration al momento del envío.
 /// </summary>
 public class CustomEmailProvider(ILogger<CustomEmailProvider> logger) : IEmailProvider
 {

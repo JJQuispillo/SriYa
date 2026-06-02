@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Qora.Billing.Application.Queries.Handlers;
 
 /// <summary>
-/// Re-checks SRI authorization status for a document that was accepted but not yet authorized.
+/// Vuelve a verificar el estado de autorización en el SRI para un documento que fue aceptado pero aún no autorizado.
 /// </summary>
 public class CheckDocumentStatusQueryHandler : IRequestHandler<CheckDocumentStatusQuery, DocumentResponse?>
 {
@@ -38,7 +38,7 @@ public class CheckDocumentStatusQueryHandler : IRequestHandler<CheckDocumentStat
         if (document is null || document.TenantId != query.TenantId)
             return null;
 
-        // Only re-check documents that are pending (SentToSri or PendingRetry)
+        // Solo vuelve a verificar documentos que están pendientes (SentToSri o PendingRetry)
         if (document.Status is DocumentStatus.SentToSri or DocumentStatus.PendingRetry)
         {
             if (document.AccessKey is not null)

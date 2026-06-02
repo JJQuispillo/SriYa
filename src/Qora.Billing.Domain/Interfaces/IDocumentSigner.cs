@@ -1,7 +1,7 @@
 namespace Qora.Billing.Domain.Interfaces;
 
 /// <summary>
-/// Signs an XML document using XAdES-BES with a PKCS#12 certificate.
+/// Firma un documento XML usando XAdES-BES con un certificado PKCS#12.
 /// </summary>
 public interface IDocumentSigner
 {

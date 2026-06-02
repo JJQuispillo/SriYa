@@ -9,9 +9,9 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Api.Middleware;
 
 /// <summary>
-/// Custom authentication handler that validates API keys via X-Api-Key header.
-/// Hashes the provided key with SHA-256 and looks it up in the database.
-/// On success, sets TenantId claim from the associated API key record.
+/// Manejador de autenticación personalizado que valida las API keys mediante el encabezado X-Api-Key.
+/// Calcula el hash de la clave proporcionada con SHA-256 y la busca en la base de datos.
+/// Si tiene éxito, establece el claim TenantId a partir del registro de la API key asociada.
 /// </summary>
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
@@ -43,10 +43,10 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return AuthenticateResult.Fail("La API key está vacía.");
         }
 
-        // Hash the provided key with SHA-256
+        // Calcula el hash de la clave proporcionada con SHA-256
         var keyHash = HashApiKey(apiKey);
 
-        // Look up in database
+        // Busca en la base de datos
         var apiKeyEntity = await _apiKeyRepository.GetByKeyHashAsync(keyHash);
 
         if (apiKeyEntity is null)

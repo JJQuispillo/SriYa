@@ -9,8 +9,8 @@ using Qora.Billing.Application.Queries;
 namespace Qora.Billing.Api.Endpoints;
 
 /// <summary>
-/// Minimal API endpoints for API key management.
-/// All endpoints require authentication and tenant context.
+/// Endpoints de Minimal API para la gestión de API keys.
+/// Todos los endpoints requieren autenticación y contexto de tenant.
 /// </summary>
 public static class ApiKeyEndpoints
 {

@@ -3,7 +3,7 @@ using Qora.Billing.Domain.Entities;
 namespace Qora.Billing.Domain.Interfaces;
 
 /// <summary>
-/// Generates RIDE (Representación Impresa del Documento Electrónico) PDF for a document.
+/// Genera el PDF del RIDE (Representación Impresa del Documento Electrónico) de un documento.
 /// </summary>
 public interface IRideGenerator
 {

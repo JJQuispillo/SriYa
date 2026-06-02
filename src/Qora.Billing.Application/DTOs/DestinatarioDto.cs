@@ -1,7 +1,7 @@
 namespace Qora.Billing.Application.DTOs;
 
 /// <summary>
-/// Represents a destinatario (recipient) in a GuiaRemision document request.
+/// Representa un destinatario en una solicitud de documento GuiaRemision.
 /// </summary>
 public record DestinatarioDto(
     string IdentificacionDestinatario,
@@ -16,7 +16,7 @@ public record DestinatarioDto(
     string? Rise = null);
 
 /// <summary>
-/// Represents a transported item within a GuiaRemision destinatario.
+/// Representa un ítem transportado dentro de un destinatario de GuiaRemision.
 /// </summary>
 public record DestinatarioItemDto(
     string CodigoInterno,

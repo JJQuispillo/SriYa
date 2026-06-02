@@ -6,8 +6,8 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Application.DomainEventHandlers;
 
 /// <summary>
-/// Automatically sends an email to the buyer whenever a document is authorized by SRI.
-/// This handler is fire-and-forget: it never throws so as not to interrupt the main pipeline.
+/// Envía automáticamente un correo al comprador cada vez que un documento es autorizado por el SRI.
+/// Este handler es fire-and-forget: nunca lanza excepciones para no interrumpir el pipeline principal.
 /// </summary>
 public class DocumentAuthorizedEmailHandler(
     IDocumentRepository documentRepository,
@@ -42,7 +42,7 @@ public class DocumentAuthorizedEmailHandler(
         }
         catch (Exception ex)
         {
-            // Never propagate — email failure must not affect document authorization
+            // Nunca propagar — un fallo en el correo no debe afectar la autorización del documento
             logger.LogError(ex, "Failed to send auto-email for authorized document {DocumentId}.", notification.DocumentId);
         }
     }

@@ -45,7 +45,7 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
             .HasColumnName("updated_at")
             .IsRequired();
 
-        // Indexes
+        // Índices
         builder.HasIndex(a => a.KeyHash)
             .IsUnique()
             .HasDatabaseName("ix_api_keys_key_hash");
@@ -53,7 +53,7 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
         builder.HasIndex(a => a.TenantId)
             .HasDatabaseName("ix_api_keys_tenant_id");
 
-        // Ignore domain events collection
+        // Ignorar la colección de eventos de dominio
         builder.Ignore(a => a.DomainEvents);
     }
 }

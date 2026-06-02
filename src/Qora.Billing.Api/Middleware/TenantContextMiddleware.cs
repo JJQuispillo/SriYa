@@ -4,9 +4,9 @@ using Qora.Billing.Infrastructure.Persistence;
 namespace Qora.Billing.Api.Middleware;
 
 /// <summary>
-/// Middleware that extracts TenantId from the authenticated user's claims
-/// and sets it on both ITenantContext (for application layer) and
-/// BillingDbContext (for multi-tenant query filters).
+/// Middleware que extrae el TenantId de los claims del usuario autenticado
+/// y lo establece tanto en ITenantContext (para la capa de aplicación) como en
+/// BillingDbContext (para los filtros de consulta multi-tenant).
 /// </summary>
 public class TenantContextMiddleware
 {
@@ -24,15 +24,15 @@ public class TenantContextMiddleware
     {
         Guid? tenantId = null;
 
-        // 1. Try to get TenantId from claims (set by ApiKey auth handler)
+        // 1. Intentar obtener el TenantId desde los claims (establecido por el manejador de autenticación ApiKey)
         var tenantIdClaim = context.User.FindFirst("TenantId")?.Value;
         if (!string.IsNullOrEmpty(tenantIdClaim) && Guid.TryParse(tenantIdClaim, out var claimTenantId))
         {
             tenantId = claimTenantId;
         }
 
-        // 2. For ServiceToken auth, allow X-Tenant-Id header to specify the tenant
-        //    This enables service-to-service calls to operate on behalf of a specific tenant.
+        // 2. Para la autenticación con ServiceToken, permitir que el encabezado X-Tenant-Id especifique el tenant
+        //    Esto permite que las llamadas entre servicios operen en nombre de un tenant específico.
         if (!tenantId.HasValue
             && context.User.Identity?.AuthenticationType == ServiceTokenAuthenticationHandler.SchemeName
             && context.Request.Headers.TryGetValue("X-Tenant-Id", out var tenantIdHeader)
@@ -52,7 +52,7 @@ public class TenantContextMiddleware
 }
 
 /// <summary>
-/// Extension method for registering the TenantContextMiddleware in the pipeline.
+/// Método de extensión para registrar el TenantContextMiddleware en el pipeline.
 /// </summary>
 public static class TenantContextMiddlewareExtensions
 {

@@ -22,7 +22,7 @@ public class TenantRepository : ITenantRepository
 
     public async Task<Tenant?> GetByRucAsync(string ruc, CancellationToken cancellationToken = default)
     {
-        // Compare using the Ruc value object so EF Core's value converter can translate the query
+        // Comparar usando el value object Ruc para que el value converter de EF Core pueda traducir la consulta
         var rucVO = new Ruc(ruc);
         return await _context.Tenants
             .FirstOrDefaultAsync(t => t.Ruc == rucVO, cancellationToken);

@@ -7,16 +7,16 @@ using Microsoft.Extensions.Logging;
 namespace Qora.Billing.Infrastructure.Persistence;
 
 /// <summary>
-/// One-time data migrator that re-encrypts electronic_signatures rows after migration B1d runs.
+/// Migrador de datos de una sola vez que vuelve a cifrar las filas de electronic_signatures después de que se ejecuta la migración B1d.
 ///
-/// Called from Program.cs startup after db.Database.MigrateAsync() completes.
-/// Safe to call multiple times — rows already in the encrypted HKDF format are detected
-/// and skipped (idempotent).
+/// Se invoca desde el arranque en Program.cs después de que db.Database.MigrateAsync() finaliza.
+/// Es seguro llamarlo varias veces — las filas que ya están en el formato cifrado HKDF se detectan
+/// y se omiten (idempotente).
 ///
-/// Why here and not inside the EF migration?
-///   EF Core migrations run SQL, not arbitrary C# code. AES+HKDF requires .NET crypto
-///   APIs not available in PL/pgSQL. The startup-hook pattern is the standard approach
-///   for C# data migrations in production ASP.NET Core services.
+/// ¿Por qué aquí y no dentro de la migración de EF?
+///   Las migraciones de EF Core ejecutan SQL, no código C# arbitrario. AES+HKDF requiere las APIs
+///   de criptografía de .NET que no están disponibles en PL/pgSQL. El patrón de startup-hook es el enfoque
+///   estándar para las migraciones de datos en C# en servicios ASP.NET Core en producción.
 /// </summary>
 public class CertificateDataMigrator
 {
@@ -36,24 +36,24 @@ public class CertificateDataMigrator
     }
 
     /// <summary>
-    /// Re-encrypts any electronic_signatures rows whose certificate_data or password_encrypted
-    /// columns are not yet in the HKDF-encrypted Base64 format.
+    /// Vuelve a cifrar cualquier fila de electronic_signatures cuyas columnas certificate_data o password_encrypted
+    /// no estén todavía en el formato Base64 cifrado con HKDF.
     ///
-    /// Detection heuristic:
-    ///   A valid HKDF-encrypted blob is Base64-encoded and at least 64 chars
-    ///   ([16 salt] + [16 IV] + [≥1 AES block] → ≥48 bytes → 64 Base64 chars).
-    ///   Values shorter than 64 chars, or that fail Base64 decode, are treated as unencrypted.
+    /// Heurística de detección:
+    ///   Un blob válido cifrado con HKDF está codificado en Base64 y tiene al menos 64 caracteres
+    ///   ([16 salt] + [16 IV] + [≥1 bloque AES] → ≥48 bytes → 64 caracteres Base64).
+    ///   Los valores con menos de 64 caracteres, o que fallan al decodificar Base64, se tratan como no cifrados.
     /// </summary>
     public async Task MigrateAsync(CancellationToken cancellationToken = default)
     {
-        // Use raw SQL to avoid the EF converter decrypting values we haven't encrypted yet.
-        // We need the raw column values, not the decrypted domain values.
+        // Usar SQL en crudo para evitar que el conversor de EF descifre valores que aún no hemos cifrado.
+        // Necesitamos los valores crudos de las columnas, no los valores de dominio descifrados.
         var connection = _db.Database.GetDbConnection();
         await connection.OpenAsync(cancellationToken);
 
         try
         {
-            // Read all rows as raw strings (bypassing EF value converters).
+            // Leer todas las filas como cadenas crudas (saltándose los value converters de EF).
             var rows = new List<(Guid Id, string CertData, string PwdEncrypted)>();
 
             await using (var cmd = connection.CreateCommand())
@@ -94,9 +94,9 @@ public class CertificateDataMigrator
 
                 if (certNeedsMigration)
                 {
-                    // After ALTER COLUMN bytea→text, Postgres represents the old bytea value
-                    // as a hex-escaped string like "\x504b030414..." (bytea hex format).
-                    // Parse it back to raw bytes, then encrypt.
+                    // Después de ALTER COLUMN bytea→text, Postgres representa el valor bytea antiguo
+                    // como una cadena hex-escapada tipo "\x504b030414..." (formato hex de bytea).
+                    // Parsearlo de vuelta a bytes crudos y luego cifrar.
                     byte[] certBytes;
                     if (rawCertData.StartsWith("\\x", StringComparison.OrdinalIgnoreCase))
                     {
@@ -104,7 +104,7 @@ public class CertificateDataMigrator
                     }
                     else
                     {
-                        // Might already be raw base64 or plain text — encode as-is to bytes.
+                        // Podría ya ser base64 en crudo o texto plano — codificar tal cual a bytes.
                         certBytes = Convert.FromBase64String(rawCertData);
                     }
                     newCertData = EncryptBytes(certBytes, _encryptionKey);
@@ -113,7 +113,7 @@ public class CertificateDataMigrator
 
                 if (pwdNeedsMigration)
                 {
-                    // password_encrypted was stored as plaintext before B1d.
+                    // password_encrypted se almacenaba como texto plano antes de B1d.
                     newPwdEncrypted = EncryptString(rawPwdEncrypted, _encryptionKey);
                     _logger.LogDebug("CertificateDataMigrator: re-encrypting password_encrypted for id={Id}", id);
                 }
@@ -166,16 +166,16 @@ public class CertificateDataMigrator
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────────
+    // ── Auxiliares ──────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Heuristic: a value is HKDF-encrypted if it is valid Base64 and decodes to ≥48 bytes
-    /// (16 salt + 16 IV + ≥16 ciphertext = minimum 48 bytes = 64 Base64 chars).
+    /// Heurística: un valor está cifrado con HKDF si es Base64 válido y decodifica a ≥48 bytes
+    /// (16 salt + 16 IV + ≥16 de texto cifrado = mínimo 48 bytes = 64 caracteres Base64).
     /// </summary>
     private static bool IsHkdfEncrypted(string value)
     {
         if (string.IsNullOrEmpty(value) || value.Length < 64) return false;
-        // Bytea hex-escaped strings start with \x — definitely not Base64-encrypted.
+        // Las cadenas bytea hex-escapadas empiezan con \x — definitivamente no están cifradas en Base64.
         if (value.StartsWith("\\x", StringComparison.OrdinalIgnoreCase)) return false;
         try
         {
@@ -189,11 +189,11 @@ public class CertificateDataMigrator
     }
 
     /// <summary>
-    /// Parses a Postgres bytea hex-escaped string ("\x504b0304...") to a byte array.
+    /// Parsea una cadena bytea hex-escapada de Postgres ("\x504b0304...") a un arreglo de bytes.
     /// </summary>
     private static byte[] ParsePostgresBytea(string hex)
     {
-        // Strip the \x prefix
+        // Quitar el prefijo \x
         var hexStr = hex.Substring(2);
         var bytes = new byte[hexStr.Length / 2];
         for (int i = 0; i < bytes.Length; i++)

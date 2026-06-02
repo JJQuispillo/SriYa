@@ -1,8 +1,8 @@
 namespace Qora.Billing.Application.Interfaces;
 
 /// <summary>
-/// Provides access to the current tenant context for the request scope.
-/// Populated by TenantContextMiddleware after authentication.
+/// Proporciona acceso al contexto del tenant actual para el ámbito de la solicitud.
+/// Lo rellena TenantContextMiddleware después de la autenticación.
 /// </summary>
 public interface ITenantContext
 {

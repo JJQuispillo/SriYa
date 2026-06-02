@@ -35,7 +35,7 @@ public class CreateApiKeyCommandHandler : IRequestHandler<CreateApiKeyCommand, A
             ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
         tenant.EnsureActive();
 
-        // Generate a cryptographically secure random API key with environment-aware prefix
+        // Genera una API key aleatoria criptográficamente segura con un prefijo según el entorno
         var prefix = _apiKeySettings.Prefix;
         var randomBytes = RandomNumberGenerator.GetBytes(32);
         var randomPart = Convert.ToBase64String(randomBytes)
@@ -44,7 +44,7 @@ public class CreateApiKeyCommandHandler : IRequestHandler<CreateApiKeyCommand, A
             .Replace("=", "");
         var plaintextKey = $"{prefix}{randomPart}";
 
-        // Hash the key with SHA-256 for storage — plaintext is NEVER stored
+        // Aplica hash a la key con SHA-256 para almacenarla — el texto plano NUNCA se almacena
         var keyHash = HashApiKey(plaintextKey);
 
         var apiKey = ApiKey.Create(
@@ -56,7 +56,7 @@ public class CreateApiKeyCommandHandler : IRequestHandler<CreateApiKeyCommand, A
         await _apiKeyRepository.CreateAsync(apiKey, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Return plaintext key ONLY on creation — it will never be retrievable again
+        // Devuelve la key en texto plano SOLO en la creación — nunca se podrá recuperar de nuevo
         return new ApiKeyResponse(
             apiKey.Id,
             apiKey.Name,

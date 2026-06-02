@@ -5,9 +5,9 @@ using System.Text;
 namespace Qora.Billing.Infrastructure.Persistence.Converters;
 
 /// <summary>
-/// EF Core value converter that transparently AES-256-encrypts string columns at rest.
-/// Format: [16-byte salt][16-byte IV][ciphertext] encoded as Base64.
-/// Key derivation uses HKDF-SHA256 with a per-value random salt for security.
+/// Value converter de EF Core que cifra de forma transparente las columnas string en reposo con AES-256.
+/// Formato: [salt de 16 bytes][IV de 16 bytes][texto cifrado] codificado en Base64.
+/// La derivación de la clave usa HKDF-SHA256 con un salt aleatorio por valor por seguridad.
 /// </summary>
 public class EncryptedStringConverter(string encryptionKey) : ValueConverter<string?, string?>(
     v => v == null ? null : Encrypt(v, encryptionKey),
@@ -15,7 +15,7 @@ public class EncryptedStringConverter(string encryptionKey) : ValueConverter<str
 {
     private static string Encrypt(string plainText, string key)
     {
-        // Generate random 16-byte salt for HKDF key derivation
+        // Generar un salt aleatorio de 16 bytes para la derivación de la clave HKDF
         var salt = RandomNumberGenerator.GetBytes(16);
 
         using var aes = Aes.Create();
@@ -26,7 +26,7 @@ public class EncryptedStringConverter(string encryptionKey) : ValueConverter<str
         var plainBytes = Encoding.UTF8.GetBytes(plainText);
         var encryptedBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
 
-        // Format: [16-byte salt][16-byte IV][ciphertext]
+        // Formato: [salt de 16 bytes][IV de 16 bytes][texto cifrado]
         var result = new byte[salt.Length + aes.IV.Length + encryptedBytes.Length];
         Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
         Buffer.BlockCopy(aes.IV, 0, result, salt.Length, aes.IV.Length);
@@ -60,14 +60,14 @@ public class EncryptedStringConverter(string encryptionKey) : ValueConverter<str
         return Encoding.UTF8.GetString(resultBytes);
     }
 
-    /// <summary>Encrypt a non-nullable string. Used by non-nullable property configs.</summary>
+    /// <summary>Cifra un string no anulable. Usado por las configuraciones de propiedades no anulables.</summary>
     internal static string EncryptValue(string plainText, string key) => Encrypt(plainText, key);
 
-    /// <summary>Decrypt to a non-nullable string. Used by non-nullable property configs.</summary>
+    /// <summary>Descifra a un string no anulable. Usado por las configuraciones de propiedades no anulables.</summary>
     internal static string DecryptValue(string cipherText, string key) => Decrypt(cipherText, key);
 
     /// <summary>
-    /// Derives a 32-byte AES key from the master key and a per-value salt using HKDF-SHA256.
+    /// Deriva una clave AES de 32 bytes a partir de la clave maestra y un salt por valor usando HKDF-SHA256.
     /// </summary>
     private static byte[] DeriveKey(string key, byte[] salt) =>
         HKDF.DeriveKey(

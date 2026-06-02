@@ -82,10 +82,10 @@ public class DocumentItemConfiguration : IEntityTypeConfiguration<DocumentItem>
             .HasMaxLength(49)
             .IsRequired(false);
 
-        // Subtotal is computed, ignore from persistence
+        // Subtotal es calculado, ignorar en la persistencia
         builder.Ignore(di => di.Subtotal);
 
-        // Index for lookups by document
+        // Índice para búsquedas por documento
         builder.HasIndex(di => di.DocumentId)
             .HasDatabaseName("ix_document_items_document_id");
     }

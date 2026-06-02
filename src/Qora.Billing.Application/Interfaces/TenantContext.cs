@@ -1,8 +1,8 @@
 namespace Qora.Billing.Application.Interfaces;
 
 /// <summary>
-/// Scoped implementation of ITenantContext.
-/// Holds the current tenant ID for the duration of the HTTP request.
+/// Implementación scoped de ITenantContext.
+/// Mantiene el ID del tenant actual durante toda la solicitud HTTP.
 /// </summary>
 public class TenantContext : ITenantContext
 {

@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 namespace Qora.Billing.Api.Middleware;
 
 /// <summary>
-/// Authentication handler for internal service-to-service calls.
-/// Validates X-Service-Token header against a configured service token.
-/// Used by the main POS API to manage tenants and other admin operations.
+/// Manejador de autenticación para llamadas internas entre servicios.
+/// Valida el encabezado X-Service-Token contra un token de servicio configurado.
+/// Usado por la API principal del POS para gestionar tenants y otras operaciones administrativas.
 /// </summary>
 public class ServiceTokenAuthenticationHandler : AuthenticationHandler<ServiceTokenAuthenticationOptions>
 {
@@ -56,12 +56,12 @@ public class ServiceTokenAuthenticationHandler : AuthenticationHandler<ServiceTo
 }
 
 /// <summary>
-/// Options for service token authentication.
+/// Opciones para la autenticación mediante token de servicio.
 /// </summary>
 public class ServiceTokenAuthenticationOptions : AuthenticationSchemeOptions
 {
     /// <summary>
-    /// The expected service token value for internal service-to-service authentication.
+    /// El valor esperado del token de servicio para la autenticación interna entre servicios.
     /// </summary>
     public string ServiceToken { get; set; } = string.Empty;
 }

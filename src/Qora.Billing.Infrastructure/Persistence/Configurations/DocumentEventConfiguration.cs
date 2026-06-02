@@ -39,13 +39,13 @@ public class DocumentEventConfiguration : IEntityTypeConfiguration<DocumentEvent
             .HasColumnName("occurred_at")
             .IsRequired();
 
-        // Relationships
+        // Relaciones
         builder.HasOne<Document>()
             .WithMany()
             .HasForeignKey(de => de.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexes
+        // Índices
         builder.HasIndex(de => de.DocumentId)
             .HasDatabaseName("ix_document_events_document_id");
 

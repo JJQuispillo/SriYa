@@ -5,8 +5,8 @@ using Microsoft.Extensions.Logging;
 namespace Qora.Billing.Application.Behaviors;
 
 /// <summary>
-/// MediatR pipeline behavior that logs request/response.
-/// NEVER logs sensitive data (certificates, passwords, API keys).
+/// Behavior del pipeline de MediatR que registra la solicitud/respuesta.
+/// NUNCA registra datos sensibles (certificados, contraseñas, API keys).
 /// </summary>
 public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull

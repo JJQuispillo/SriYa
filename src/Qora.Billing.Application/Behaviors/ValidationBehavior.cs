@@ -4,8 +4,8 @@ using MediatR;
 namespace Qora.Billing.Application.Behaviors;
 
 /// <summary>
-/// MediatR pipeline behavior that runs FluentValidation validators before the handler.
-/// If any validation errors are found, throws a ValidationException.
+/// Behavior del pipeline de MediatR que ejecuta los validadores de FluentValidation antes del handler.
+/// Si se encuentran errores de validación, lanza una ValidationException.
 /// </summary>
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull

@@ -9,8 +9,8 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Xml;
 
 /// <summary>
-/// Generates unsigned XML for Nota de Crédito documents following SRI XSD v1.0.0 schema.
-/// Uses System.Xml.Linq for cleaner XML construction.
+/// Genera el XML sin firmar para documentos Nota de Crédito siguiendo el esquema XSD v1.0.0 del SRI.
+/// Usa System.Xml.Linq para una construcción de XML más limpia.
 /// </summary>
 public class NotaCreditoXmlBuilder : IXmlGenerator
 {
@@ -35,7 +35,7 @@ public class NotaCreditoXmlBuilder : IXmlGenerator
             BuildDetalles(document),
             BuildInfoAdicional(document));
 
-        // UTF-8 without BOM
+        // UTF-8 sin BOM
         var settings = new System.Xml.XmlWriterSettings
         {
             Encoding = new UTF8Encoding(false),
@@ -188,8 +188,8 @@ public class NotaCreditoXmlBuilder : IXmlGenerator
     }
 
     /// <summary>
-    /// Validates that all required fields from NotaCreditoConstants are present
-    /// in the document before XML generation proceeds.
+    /// Valida que todos los campos obligatorios de NotaCreditoConstants estén presentes
+    /// en el documento antes de proceder con la generación del XML.
     /// </summary>
     private static void ValidateRequiredFields(Document document)
     {

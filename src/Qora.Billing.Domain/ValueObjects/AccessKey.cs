@@ -3,7 +3,7 @@ using Qora.Billing.Domain.Exceptions;
 namespace Qora.Billing.Domain.ValueObjects;
 
 /// <summary>
-/// Represents a 49-digit SRI access key (clave de acceso) with Mod11 check digit validation.
+/// Representa una clave de acceso del SRI de 49 dígitos con validación de dígito verificador Mod11.
 /// </summary>
 public sealed record AccessKey
 {
@@ -27,8 +27,8 @@ public sealed record AccessKey
     }
 
     /// <summary>
-    /// Validates the Mod11 check digit (last digit) of the access key.
-    /// The check digit is calculated over the first 48 digits using weights 2-7 cycling right-to-left.
+    /// Valida el dígito verificador Mod11 (último dígito) de la clave de acceso.
+    /// El dígito verificador se calcula sobre los primeros 48 dígitos usando pesos 2-7 que se repiten de derecha a izquierda.
     /// </summary>
     private static bool IsValidMod11(string accessKey)
     {

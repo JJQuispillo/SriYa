@@ -9,10 +9,10 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Xml;
 
 /// <summary>
-/// Generates unsigned XML for Guía de Remisión documents following SRI XSD v1.1.0 schema.
-/// Uses System.Xml.Linq for cleaner XML construction.
-/// No IVA or taxes — guías de remisión are transport documents, not fiscal invoices.
-/// MVP: single destinatario per document.
+/// Genera el XML sin firmar para documentos Guía de Remisión siguiendo el esquema XSD v1.1.0 del SRI.
+/// Usa System.Xml.Linq para una construcción de XML más limpia.
+/// Sin IVA ni impuestos — las guías de remisión son documentos de transporte, no comprobantes fiscales.
+/// MVP: un solo destinatario por documento.
 /// </summary>
 public class GuiaRemisionXmlBuilder : IXmlGenerator
 {

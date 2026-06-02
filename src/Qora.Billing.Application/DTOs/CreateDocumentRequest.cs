@@ -17,8 +17,8 @@ public record DocumentItemDto(
     decimal UnitPrice,
     decimal Discount,
     /// <summary>
-    /// Ignored — TaxRate is derived from the SRI tax codes reference table by the command handler.
-    /// Kept for backward compatibility; any supplied value is discarded.
+    /// Ignorado — el command handler deriva el TaxRate de la tabla de referencia de códigos de impuestos del SRI.
+    /// Se mantiene por compatibilidad hacia atrás; cualquier valor proporcionado se descarta.
     /// </summary>
     decimal TaxRate,
     string TaxCode,

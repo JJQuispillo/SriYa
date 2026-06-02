@@ -8,9 +8,9 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Signing;
 
 /// <summary>
-/// Signs XML documents using XAdES-BES format with PKCS#12 (.p12) certificates.
-/// Uses RSA-SHA1 as required by SRI and C14N canonicalization.
-/// SECURITY: Never logs certificate data or passwords.
+/// Firma documentos XML usando el formato XAdES-BES con certificados PKCS#12 (.p12).
+/// Usa RSA-SHA1 según lo requiere el SRI y canonicalización C14N.
+/// SEGURIDAD: Nunca registra en logs los datos del certificado ni las contraseñas.
 /// </summary>
 public class XadesBesSigner : IDocumentSigner
 {
@@ -46,7 +46,7 @@ public class XadesBesSigner : IDocumentSigner
             SigningKey = rsaKey
         };
 
-        // Reference to the document content (sign the entire document)
+        // Referencia al contenido del documento (firmar el documento completo)
         var reference = new Reference
         {
             Uri = "#comprobante",
@@ -55,35 +55,35 @@ public class XadesBesSigner : IDocumentSigner
         reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
         signedXml.AddReference(reference);
 
-        // Signature method: RSA-SHA1 (required by SRI)
+        // Método de firma: RSA-SHA1 (requerido por el SRI)
         signedXml.SignedInfo!.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
 
-        // C14N canonicalization
+        // Canonicalización C14N
         signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigC14NTransformUrl;
 
-        // Key info with certificate
+        // Key info con el certificado
         var keyInfo = new KeyInfo();
         keyInfo.AddClause(new KeyInfoX509Data(certificate));
         signedXml.KeyInfo = keyInfo;
 
-        // Compute signature first (only the document reference)
+        // Calcular primero la firma (solo la referencia al documento)
         signedXml.ComputeSignature();
 
-        // Get the Signature XML element
+        // Obtener el elemento XML Signature
         var signatureElement = signedXml.GetXml();
 
-        // Now append XAdES QualifyingProperties as an Object inside the Signature
+        // Ahora añadir XAdES QualifyingProperties como un Object dentro del Signature
         var xadesObject = BuildXadesQualifyingProperties(xmlDoc, certificate);
         var dsNs = SignedXml.XmlDsigNamespaceUrl;
         var objectElement = xmlDoc.CreateElement("ds", "Object", dsNs);
         objectElement.AppendChild(xmlDoc.ImportNode(xadesObject, true));
 
-        // Import the signature into the document and append the XAdES object
+        // Importar la firma al documento y añadir el objeto XAdES
         var importedSignature = xmlDoc.ImportNode(signatureElement, true);
         importedSignature.AppendChild(objectElement);
         xmlDoc.DocumentElement!.AppendChild(importedSignature);
 
-        // Return signed XML as UTF-8 string without BOM
+        // Devolver el XML firmado como string UTF-8 sin BOM
         using var stream = new MemoryStream();
         var settings = new XmlWriterSettings
         {
@@ -109,15 +109,15 @@ public class XadesBesSigner : IDocumentSigner
         var signedProperties = ownerDoc.CreateElement("etsi", "SignedProperties", xadesNs);
         signedProperties.SetAttribute("Id", $"SignedProperties-{Guid.NewGuid():N}");
 
-        // SignedSignatureProperties
+        // Propiedades SignedSignatureProperties
         var signedSigProps = ownerDoc.CreateElement("etsi", "SignedSignatureProperties", xadesNs);
 
-        // SigningTime
+        // SigningTime (hora de firma)
         var signingTime = ownerDoc.CreateElement("etsi", "SigningTime", xadesNs);
         signingTime.InnerText = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
         signedSigProps.AppendChild(signingTime);
 
-        // SigningCertificate
+        // SigningCertificate (certificado de firma)
         var signingCert = ownerDoc.CreateElement("etsi", "SigningCertificate", xadesNs);
         var cert = ownerDoc.CreateElement("etsi", "Cert", xadesNs);
 
@@ -148,7 +148,7 @@ public class XadesBesSigner : IDocumentSigner
 
         signedProperties.AppendChild(signedSigProps);
 
-        // SignedDataObjectProperties
+        // Propiedades SignedDataObjectProperties
         var signedDataObjProps = ownerDoc.CreateElement("etsi", "SignedDataObjectProperties", xadesNs);
 
         var dataObjectFormat = ownerDoc.CreateElement("etsi", "DataObjectFormat", xadesNs);

@@ -16,8 +16,8 @@ public class GetCertificatesQueryHandler : IRequestHandler<GetCertificatesQuery,
     public async Task<List<CertificateResponse>> Handle(
         GetCertificatesQuery query, CancellationToken cancellationToken)
     {
-        // The repository currently only has GetActiveByTenantIdAsync.
-        // For now, return the active one if it exists.
+        // Actualmente el repositorio solo tiene GetActiveByTenantIdAsync.
+        // Por ahora, devuelve el certificado activo si existe.
         var active = await _signatureRepository.GetActiveByTenantIdAsync(query.TenantId, cancellationToken);
         if (active is null)
             return [];

@@ -7,8 +7,8 @@ using BillingDocument = Qora.Billing.Domain.Entities.Document;
 namespace Qora.Billing.Infrastructure.Pdf;
 
 /// <summary>
-/// Generates RIDE (Representacion Impresa del Documento Electronico) PDF documents
-/// following SRI visual standards for Ecuadorian electronic invoicing.
+/// Genera documentos PDF de RIDE (Representación Impresa del Documento Electrónico)
+/// siguiendo los estándares visuales del SRI para la facturación electrónica ecuatoriana.
 /// </summary>
 public sealed class RideGenerator : IRideGenerator
 {
@@ -40,15 +40,15 @@ public sealed class RideGenerator : IRideGenerator
         {
             column.Spacing(5);
 
-            // Two-column header: company info (left) + document info (right)
+            // Encabezado de dos columnas: info de la empresa (izquierda) + info del documento (derecha)
             column.Item().Row(row =>
             {
-                // Left: Company / Issuer info
+                // Izquierda: info de la empresa / emisor
                 row.RelativeItem(5).Border(1).Padding(8).Column(left =>
                 {
                     left.Spacing(3);
 
-                    // Logo placeholder
+                    // Marcador de posición del logo
                     left.Item().Height(40).Width(120)
                         .Background(Colors.Grey.Lighten3)
                         .AlignCenter().AlignMiddle()
@@ -68,9 +68,9 @@ public sealed class RideGenerator : IRideGenerator
                     left.Item().Text($"Obligado a llevar contabilidad: {GetValue(document.IssuerInfo, "obligadoContabilidad", defaultValue: "SI")}");
                 });
 
-                row.ConstantItem(10); // spacer
+                row.ConstantItem(10); // espaciador
 
-                // Right: Document info
+                // Derecha: info del documento
                 row.RelativeItem(4).Border(1).Padding(8).Column(right =>
                 {
                     right.Spacing(3);
@@ -87,26 +87,26 @@ public sealed class RideGenerator : IRideGenerator
                     right.Item().Text($"No. {establishment}-{emissionPoint}-{sequential}")
                         .Bold().FontSize(10);
 
-                    // Environment
+                    // Ambiente
                     var environment = GetValue(document.IssuerInfo, "ambiente", defaultValue: "1");
                     right.Item().Text($"AMBIENTE: {(environment == "2" ? "PRODUCCION" : "PRUEBAS")}")
                         .FontSize(7);
 
-                    // Emission type
+                    // Tipo de emisión
                     right.Item().Text("EMISION: NORMAL").FontSize(7);
 
-                    // Access Key
+                    // Clave de acceso
                     right.Item().PaddingTop(5).Text("CLAVE DE ACCESO:").Bold().FontSize(7);
                     var accessKeyValue = document.AccessKey?.Value ?? string.Empty;
                     right.Item().Text(accessKeyValue).FontSize(7);
 
-                    // Barcode for access key (visual Code 128 representation)
+                    // Código de barras para la clave de acceso (representación visual Code 128)
                     if (!string.IsNullOrEmpty(accessKeyValue))
                     {
                         right.Item().PaddingTop(3).Element(c => ComposeBarcode(c, accessKeyValue));
                     }
 
-                    // Authorization
+                    // Autorización
                     if (!string.IsNullOrEmpty(document.SriAuthorizationNumber))
                     {
                         right.Item().PaddingTop(3).Text("NUMERO DE AUTORIZACION:").Bold().FontSize(7);
@@ -120,15 +120,15 @@ public sealed class RideGenerator : IRideGenerator
     }
 
     /// <summary>
-    /// Renders a Code 128B barcode by grouping consecutive same-value modules
-    /// into single bars/spaces for efficient rendering.
+    /// Renderiza un código de barras Code 128B agrupando módulos consecutivos del mismo valor
+    /// en barras/espacios únicos para un renderizado eficiente.
     /// </summary>
     private static void ComposeBarcode(IContainer container, string data)
     {
         var encoded = EncodeCode128B(data);
         if (encoded.Length == 0) return;
 
-        // Group consecutive same-value bits into runs to reduce element count
+        // Agrupar bits consecutivos del mismo valor en secuencias (runs) para reducir el número de elementos
         var runs = new List<(bool isBar, int count)>();
         var i = 0;
         while (i < encoded.Length)
@@ -143,8 +143,8 @@ public sealed class RideGenerator : IRideGenerator
             runs.Add((current == '1', runLength));
         }
 
-        // Calculate module width to fit within available space
-        // Total modules in encoded string, fit to ~200pt max width
+        // Calcular el ancho del módulo para que quepa en el espacio disponible
+        // Total de módulos en la cadena codificada, ajustado a un ancho máximo de ~200pt
         var totalModules = encoded.Length;
         var moduleWidth = Math.Min(0.5f, 200f / totalModules);
 
@@ -187,7 +187,7 @@ public sealed class RideGenerator : IRideGenerator
                     break;
                 default:
                     throw new NotSupportedException(
-                        $"Document type {document.DocumentType} is not supported for RIDE generation.");
+                        $"El tipo de documento {document.DocumentType} no está soportado para la generación de RIDE.");
             }
         });
     }
@@ -196,16 +196,16 @@ public sealed class RideGenerator : IRideGenerator
     {
         column.Spacing(8);
 
-        // Buyer info section
+        // Sección de info del comprador
         column.Item().Element(c => ComposeBuyerInfo(c, document));
 
-        // Items table
+        // Tabla de ítems
         column.Item().Element(c => ComposeItemsTable(c, document));
 
-        // Totals section
+        // Sección de totales
         column.Item().Element(c => ComposeTotals(c, document));
 
-        // Additional info section
+        // Sección de información adicional
         column.Item().Element(c => ComposeAdditionalInfo(c, document));
     }
 
@@ -213,16 +213,16 @@ public sealed class RideGenerator : IRideGenerator
     {
         column.Spacing(8);
 
-        // Buyer info section
+        // Sección de info del comprador
         column.Item().Element(c => ComposeBuyerInfo(c, document));
 
-        // Items table
+        // Tabla de ítems
         column.Item().Element(c => ComposeItemsTable(c, document));
 
-        // Document reference block (documento que se modifica)
+        // Bloque de referencia al documento (documento que se modifica)
         column.Item().Element(c => ComposeDocReference(c, document));
 
-        // Totals section
+        // Sección de totales
         column.Item().Element(c => ComposeTotals(c, document));
     }
 
@@ -230,13 +230,13 @@ public sealed class RideGenerator : IRideGenerator
     {
         column.Spacing(8);
 
-        // Buyer info section
+        // Sección de info del comprador
         column.Item().Element(c => ComposeBuyerInfo(c, document));
 
-        // Motivos table (Razon, Valor) — NO product columns
+        // Tabla de motivos (Razon, Valor) — SIN columnas de producto
         column.Item().Element(c => ComposeMotivosTable(c, document));
 
-        // Totals section — sum of motivos valores
+        // Sección de totales — suma de los valores de los motivos
         column.Item().Element(c => ComposeNotaDebitoTotals(c, document));
     }
 
@@ -244,13 +244,13 @@ public sealed class RideGenerator : IRideGenerator
     {
         column.Spacing(8);
 
-        // Provider info (instead of buyer info)
+        // Info del proveedor (en lugar de la info del comprador)
         column.Item().Element(c => ComposeProviderInfo(c, document));
 
-        // Items table (same as Factura)
+        // Tabla de ítems (igual que en Factura)
         column.Item().Element(c => ComposeItemsTable(c, document));
 
-        // Totals section
+        // Sección de totales
         column.Item().Element(c => ComposeTotals(c, document));
     }
 
@@ -258,29 +258,29 @@ public sealed class RideGenerator : IRideGenerator
     {
         column.Spacing(8);
 
-        // Transporter section
+        // Sección del transportista
         column.Item().Element(c => ComposeTransporterInfo(c, document));
 
-        // Destinatario section
+        // Sección del Destinatario
         column.Item().Element(c => ComposeDestinatarioInfo(c, document));
 
-        // Items table — only Codigo, Descripcion, Cantidad (NO price/totals columns)
+        // Tabla de ítems — solo Codigo, Descripcion, Cantidad (SIN columnas de precio/totales)
         column.Item().Element(c => ComposeGuiaDetallesTable(c, document));
 
-        // NO totals section for Guia de Remision
+        // SIN sección de totales para la Guia de Remision
     }
 
     private static void ComposeCompRetencionContent(ColumnDescriptor column, BillingDocument document)
     {
         column.Spacing(8);
 
-        // Subject info (sujeto retenido)
+        // Info del sujeto (sujeto retenido)
         column.Item().Element(c => ComposeBuyerInfo(c, document));
 
-        // Retenciones table
+        // Tabla de retenciones
         column.Item().Element(c => ComposeRetencioneTable(c, document));
 
-        // Totals: total retenido
+        // Totales: total retenido
         column.Item().Element(c => ComposeRetencionTotals(c, document));
     }
 
@@ -365,7 +365,7 @@ public sealed class RideGenerator : IRideGenerator
                 columns.ConstantColumn(55);   // Total
             });
 
-            // Header row
+            // Fila de encabezado
             table.Header(header =>
             {
                 header.Cell().Background(Colors.Grey.Lighten2).Border(0.5f).Padding(3)
@@ -384,7 +384,7 @@ public sealed class RideGenerator : IRideGenerator
                     .Text("Total").Bold().FontSize(7);
             });
 
-            // Item rows
+            // Filas de ítems
             foreach (var item in document.Items)
             {
                 table.Cell().Border(0.5f).Padding(2).Text(item.MainCode).FontSize(7);
@@ -400,12 +400,12 @@ public sealed class RideGenerator : IRideGenerator
 
     private static void ComposeTotals(IContainer container, BillingDocument document)
     {
-        // Calculate tax breakdowns from items
+        // Calcular el desglose de impuestos a partir de los ítems
         var items = document.Items;
         var subtotal0 = items.Where(i => i.TaxRate == 0).Sum(i => i.Subtotal);
         var subtotal5 = items.Where(i => i.TaxRate == 5).Sum(i => i.Subtotal);
         var subtotal15 = items.Where(i => i.TaxRate == 15).Sum(i => i.Subtotal);
-        // For any other rates, group them
+        // Para cualquier otra tarifa, agruparlas
         var subtotalOther = items.Where(i => i.TaxRate != 0 && i.TaxRate != 5 && i.TaxRate != 15).Sum(i => i.Subtotal);
 
         var totalDiscount = items.Sum(i => i.Discount);
@@ -419,12 +419,12 @@ public sealed class RideGenerator : IRideGenerator
 
         container.Row(row =>
         {
-            // Additional info space (left)
+            // Espacio para info adicional (izquierda)
             row.RelativeItem(5);
 
-            row.ConstantItem(10); // spacer
+            row.ConstantItem(10); // espaciador
 
-            // Totals (right)
+            // Totales (derecha)
             row.RelativeItem(4).Border(1).Padding(5).Column(totals =>
             {
                 totals.Spacing(2);
@@ -514,7 +514,7 @@ public sealed class RideGenerator : IRideGenerator
         {
             table.ColumnsDefinition(columns =>
             {
-                columns.RelativeColumn(3);   // Razon
+                columns.RelativeColumn(3);   // Razón
                 columns.ConstantColumn(80);  // Valor
             });
 
@@ -698,8 +698,8 @@ public sealed class RideGenerator : IRideGenerator
         {
             table.ColumnsDefinition(columns =>
             {
-                columns.ConstantColumn(60);  // Codigo
-                columns.RelativeColumn(3);   // Descripcion
+                columns.ConstantColumn(60);  // Código
+                columns.RelativeColumn(3);   // Descripción
                 columns.ConstantColumn(50);  // Cantidad
             });
 
@@ -729,11 +729,11 @@ public sealed class RideGenerator : IRideGenerator
         {
             table.ColumnsDefinition(columns =>
             {
-                columns.ConstantColumn(40);  // Cod. Doc. Sustento
+                columns.ConstantColumn(40);  // Cód. Doc. Sustento
                 columns.ConstantColumn(70);  // Num. Doc. Sustento
-                columns.ConstantColumn(50);  // Fecha Emision
+                columns.ConstantColumn(50);  // Fecha Emisión
                 columns.RelativeColumn(2);   // Num. Aut.
-                columns.ConstantColumn(35);  // Cod. Impuesto
+                columns.ConstantColumn(35);  // Cód. Impuesto
                 columns.ConstantColumn(40);  // % Retener
                 columns.ConstantColumn(55);  // Base Imponible
                 columns.ConstantColumn(55);  // Valor Retenido
@@ -801,9 +801,9 @@ public sealed class RideGenerator : IRideGenerator
     }
 
     /// <summary>
-    /// Parses pipe-separated AuxiliaryCode for retenciones.
-    /// Format: "codDocSustento|numDocSustento|fechaEmisionDocSustento|numAutDocSustento"
-    /// Returns 4-element array; missing parts default to empty string.
+    /// Parsea el AuxiliaryCode separado por barras verticales (pipe) para las retenciones.
+    /// Formato: "codDocSustento|numDocSustento|fechaEmisionDocSustento|numAutDocSustento"
+    /// Devuelve un arreglo de 4 elementos; las partes faltantes toman como valor por defecto la cadena vacía.
     /// </summary>
     private static string[] ParseAuxiliaryCode(string? auxiliaryCode)
     {
@@ -818,7 +818,7 @@ public sealed class RideGenerator : IRideGenerator
 
     private static void ComposeAdditionalInfo(IContainer container, BillingDocument document)
     {
-        // Additional info from buyer (email, phone, etc.) displayed as key-value pairs
+        // Información adicional del comprador (email, teléfono, etc.) mostrada como pares clave-valor
         var additionalPairs = new List<KeyValuePair<string, string>>();
 
         var email = GetValue(document.BuyerInfo, "email", "correo");
@@ -829,7 +829,7 @@ public sealed class RideGenerator : IRideGenerator
         if (!string.IsNullOrEmpty(phone))
             additionalPairs.Add(new("Telefono", phone));
 
-        // Include any issuer additional info keys not already used
+        // Incluir cualquier clave de info adicional del emisor que no se haya usado todavía
         var knownIssuerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "ruc", "razonSocial", "nombreComercial", "direccion", "direccionMatriz",
@@ -868,15 +868,15 @@ public sealed class RideGenerator : IRideGenerator
     }
 
     /// <summary>
-    /// Encodes a string using Code 128B encoding (simplified).
-    /// Returns a string of '0' (space) and '1' (bar) characters.
+    /// Codifica una cadena usando la codificación Code 128B (simplificada).
+    /// Devuelve una cadena de caracteres '0' (espacio) y '1' (barra).
     /// </summary>
     internal static string EncodeCode128B(string data)
     {
         if (string.IsNullOrEmpty(data)) return string.Empty;
 
-        // Code 128B bar patterns — each symbol = 11 modules, stop = 13
-        // Index 0-94 correspond to ASCII 32-126
+        // Patrones de barras Code 128B — cada símbolo = 11 módulos, stop = 13
+        // Los índices 0-94 corresponden a ASCII 32-126
         var code128Patterns = new[]
         {
             "11011001100", "11001101100", "11001100110", "10010011000", "10010001100", // 0-4
@@ -905,7 +905,7 @@ public sealed class RideGenerator : IRideGenerator
 
         var result = new System.Text.StringBuilder();
 
-        // Start Code B (index 104)
+        // Start Code B (índice 104)
         result.Append(code128Patterns[104]);
 
         var checksum = 104;
@@ -913,20 +913,20 @@ public sealed class RideGenerator : IRideGenerator
 
         foreach (var c in data)
         {
-            var value = c - 32; // ASCII value - 32
+            var value = c - 32; // valor ASCII - 32
             if (value < 0 || value > 94)
-                value = 0; // fallback to space for unsupported chars
+                value = 0; // usar espacio como respaldo para caracteres no soportados
 
             result.Append(code128Patterns[value]);
             checksum += value * position;
             position++;
         }
 
-        // Checksum character
+        // Carácter de checksum
         var checksumValue = checksum % 103;
         result.Append(code128Patterns[checksumValue]);
 
-        // Stop pattern (index 106)
+        // Patrón de stop (índice 106)
         result.Append(code128Patterns[106]);
 
         return result.ToString();
@@ -944,8 +944,8 @@ public sealed class RideGenerator : IRideGenerator
     };
 
     /// <summary>
-    /// Gets a value from a dictionary, trying multiple keys in order.
-    /// Returns the default value if none of the keys are found.
+    /// Obtiene un valor de un diccionario, probando varias claves en orden.
+    /// Devuelve el valor por defecto si no se encuentra ninguna de las claves.
     /// </summary>
     private static string GetValue(Dictionary<string, string> dict, string key1,
         string? key2 = null, string? key3 = null, string defaultValue = "")

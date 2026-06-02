@@ -1,7 +1,7 @@
 namespace Qora.Billing.Domain.Entities;
 
 /// <summary>
-/// Represents a line item within a billing document.
+/// Representa una línea de detalle dentro de un documento de facturación.
 /// </summary>
 public class DocumentItem
 {
@@ -18,11 +18,11 @@ public class DocumentItem
     public string TaxCode { get; private set; } = string.Empty;
     public string TaxPercentageCode { get; private set; } = string.Empty;
 
-    // Sustento fields (SRI codDocSustento)
-    public string? SustentoDocumentType { get; private set; }        // max 2 chars
-    public string? SustentoDocumentNumber { get; private set; }      // max 39 chars
+    // Campos de sustento (codDocSustento del SRI)
+    public string? SustentoDocumentType { get; private set; }        // máx. 2 caracteres
+    public string? SustentoDocumentNumber { get; private set; }      // máx. 39 caracteres
     public DateTime? SustentoDocumentIssueDate { get; private set; }
-    public string? SustentoDocumentAuthNumber { get; private set; }  // max 49 chars
+    public string? SustentoDocumentAuthNumber { get; private set; }  // máx. 49 caracteres
 
     private DocumentItem() { } // EF Core
 

@@ -9,8 +9,8 @@ using Qora.Billing.Application.Queries;
 namespace Qora.Billing.Api.Endpoints;
 
 /// <summary>
-/// Minimal API endpoints for digital certificate management.
-/// All endpoints require authentication and tenant context.
+/// Endpoints de Minimal API para la gestión de certificados digitales.
+/// Todos los endpoints requieren autenticación y contexto de tenant.
 /// </summary>
 public static class CertificateEndpoints
 {
@@ -45,20 +45,20 @@ public static class CertificateEndpoints
         ISender sender,
         CancellationToken ct)
     {
-        // Validate file presence
+        // Validar la presencia del archivo
         if (certificate is null || certificate.Length == 0)
             return TypedResults.BadRequest("El archivo del certificado es requerido.");
 
-        // Validate file extension
+        // Validar la extensión del archivo
         var extension = Path.GetExtension(certificate.FileName)?.ToLowerInvariant();
         if (string.IsNullOrEmpty(extension) || !AllowedExtensions.Contains(extension))
             return TypedResults.BadRequest("Solo se aceptan archivos .p12 y .pfx.");
 
-        // Validate file size
+        // Validar el tamaño del archivo
         if (certificate.Length > MaxFileSizeBytes)
             return TypedResults.BadRequest($"El archivo del certificado no debe exceder los {MaxFileSizeBytes / (1024 * 1024)} MB.");
 
-        // Read file bytes
+        // Leer los bytes del archivo
         using var memoryStream = new MemoryStream();
         await certificate.CopyToAsync(memoryStream, ct);
         var certificateData = memoryStream.ToArray();

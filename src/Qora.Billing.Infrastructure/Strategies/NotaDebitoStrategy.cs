@@ -9,9 +9,9 @@ using Qora.Billing.Infrastructure.Xml;
 namespace Qora.Billing.Infrastructure.Strategies;
 
 /// <summary>
-/// Strategy for Nota de Débito document type.
-/// Orchestrates nota-de-débito-specific validation, system field auto-generation,
-/// XML generation, and RIDE PDF generation.
+/// Estrategia para el tipo de documento Nota de Débito.
+/// Orquesta la validación específica de la nota de débito, la autogeneración de campos del sistema,
+/// la generación del XML y la generación del RIDE PDF.
 /// </summary>
 public class NotaDebitoStrategy : IDocumentTypeStrategy
 {
@@ -20,17 +20,17 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
     private readonly SriConfiguration _sriConfiguration;
 
     /// <summary>
-    /// Valid IVA tax rates for Ecuador (2026): 0%, 5%, 12%, 15%.
+    /// Tarifas de IVA válidas para Ecuador (2026): 0%, 5%, 12%, 15%.
     /// </summary>
     private static readonly HashSet<decimal> ValidIvaRates = [0m, 5m, 12m, 15m];
 
     /// <summary>
-    /// SRI document number format: estab-ptoEmi-secuencial (e.g., 001-001-000000001).
+    /// Formato del número de documento del SRI: estab-ptoEmi-secuencial (ej., 001-001-000000001).
     /// </summary>
     private static readonly Regex NumDocSustentoPattern = new(@"^\d{3}-\d{3}-\d{9}$", RegexOptions.Compiled);
 
     /// <summary>
-    /// SRI codDoc for a Factura, which is the only valid sustaining document for Nota de Débito.
+    /// codDoc del SRI para una Factura, que es el único documento de sustento válido para la Nota de Débito.
     /// </summary>
     private const string CodDocSustentoFactura = "01";
 
@@ -47,30 +47,30 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Validates nota-de-débito-specific business rules.
-    /// Checks ALL fields that NotaDebitoXmlBuilder requires, using NotaDebitoConstants
-    /// for alignment between validation and XML generation.
-    /// Returns a list of validation error messages (empty if valid).
+    /// Valida las reglas de negocio específicas de la nota de débito.
+    /// Verifica TODOS los campos que requiere NotaDebitoXmlBuilder, usando NotaDebitoConstants
+    /// para mantener la alineación entre la validación y la generación del XML.
+    /// Devuelve una lista de mensajes de error de validación (vacía si es válido).
     /// </summary>
     public Task<IReadOnlyList<string>> ValidateDocumentAsync(Document document,
         CancellationToken cancellationToken = default)
     {
         var errors = new List<string>();
 
-        // Must be a NotaDebito
+        // Debe ser una NotaDebito
         if (document.DocumentType != DocumentType.NotaDebito)
         {
             errors.Add($"Expected document type NotaDebito, got {document.DocumentType}.");
             return Task.FromResult<IReadOnlyList<string>>(errors);
         }
 
-        // Must have at least one motivo (item)
+        // Debe tener al menos un motivo (ítem)
         if (document.Items.Count == 0)
         {
             errors.Add("Nota de Débito must have at least one motivo (line item).");
         }
 
-        // Validate caller-provided issuer required fields
+        // Validar los campos obligatorios del emisor provistos por el llamador
         foreach (var field in NotaDebitoConstants.RequiredIssuerFields)
         {
             if (!document.IssuerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -79,7 +79,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate doc sustento fields
+        // Validar los campos del documento sustento
         foreach (var field in NotaDebitoConstants.RequiredDocSustentoFields)
         {
             if (!document.IssuerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -88,7 +88,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
             }
         }
 
-        // codDocSustento must be "01" (Factura)
+        // codDocSustento debe ser "01" (Factura)
         if (document.IssuerInfo.TryGetValue("codDocSustento", out var codDocSustento) &&
             !string.IsNullOrWhiteSpace(codDocSustento) &&
             codDocSustento != CodDocSustentoFactura)
@@ -96,7 +96,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
             errors.Add($"codDocSustento must be '{CodDocSustentoFactura}' (Factura). Got '{codDocSustento}'.");
         }
 
-        // numDocSustento must match 001-001-000000001 format
+        // numDocSustento debe cumplir el formato 001-001-000000001
         if (document.IssuerInfo.TryGetValue("numDocSustento", out var numDocSustento) &&
             !string.IsNullOrWhiteSpace(numDocSustento) &&
             !NumDocSustentoPattern.IsMatch(numDocSustento))
@@ -104,7 +104,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
             errors.Add($"numDocSustento '{numDocSustento}' must match format '###-###-#########' (e.g., 001-001-000000001).");
         }
 
-        // fechaEmisionDocSustento must be parseable as dd/MM/yyyy
+        // fechaEmisionDocSustento debe ser parseable como dd/MM/yyyy
         if (document.IssuerInfo.TryGetValue("fechaEmisionDocSustento", out var fechaEmision) &&
             !string.IsNullOrWhiteSpace(fechaEmision) &&
             !DateTime.TryParseExact(fechaEmision, "dd/MM/yyyy",
@@ -114,7 +114,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
             errors.Add($"fechaEmisionDocSustento '{fechaEmision}' must be in format 'dd/MM/yyyy'.");
         }
 
-        // Validate IVA rates on all motivos
+        // Validar las tarifas de IVA en todos los motivos
         foreach (var item in document.Items)
         {
             if (!ValidIvaRates.Contains(item.TaxRate))
@@ -125,7 +125,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate buyer required fields (always required for NotaDebito)
+        // Validar los campos obligatorios del comprador (siempre requeridos para NotaDebito)
         foreach (var field in NotaDebitoConstants.RequiredBuyerFields)
         {
             if (!document.BuyerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -138,8 +138,8 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Auto-generates system fields (ambiente, tipoEmision, claveAcceso, fechaEmision)
-    /// into the document's IssuerInfo, then delegates XML building to NotaDebitoXmlBuilder.
+    /// Autogenera los campos del sistema (ambiente, tipoEmision, claveAcceso, fechaEmision)
+    /// en el IssuerInfo del documento, luego delega la construcción del XML a NotaDebitoXmlBuilder.
     /// </summary>
     public Task<string> BuildXmlAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -148,7 +148,7 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Generates RIDE PDF for Nota de Débito by delegating to the shared RideGenerator.
+    /// Genera el RIDE PDF para la Nota de Débito delegando al RideGenerator compartido.
     /// </summary>
     public Task<byte[]> BuildRidePdfAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -156,28 +156,28 @@ public class NotaDebitoStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Populates system-generated fields into the document's IssuerInfo dictionary
-    /// before XML generation. Uses SRI configuration for environment and emission type,
-    /// and AccessKeyGenerator for the 49-digit access key.
+    /// Rellena los campos generados por el sistema en el diccionario IssuerInfo del documento
+    /// antes de la generación del XML. Usa la configuración del SRI para el ambiente y el tipo de emisión,
+    /// y AccessKeyGenerator para la clave de acceso de 49 dígitos.
     /// </summary>
     private void PopulateSystemFields(Document document)
     {
         var issuer = document.IssuerInfo;
         var now = DateTime.UtcNow;
 
-        // Determine environment from SRI configuration
+        // Determinar el ambiente desde la configuración del SRI
         var environment = _sriConfiguration.Environment;
 
         // ambiente: 1=Test, 2=Production
         issuer["ambiente"] = ((int)environment).ToString();
 
-        // tipoEmision: always Normal (1) for standard emission
+        // tipoEmision: siempre Normal (1) para la emisión estándar
         issuer["tipoEmision"] = ((int)EmissionType.Normal).ToString();
 
-        // fechaEmision: current date in dd/MM/yyyy format (SRI format)
+        // fechaEmision: fecha actual en formato dd/MM/yyyy (formato del SRI)
         issuer["fechaEmision"] = now.ToString("dd/MM/yyyy");
 
-        // claveAcceso: 49-digit access key generated using AccessKeyGenerator
+        // claveAcceso: clave de acceso de 49 dígitos generada con AccessKeyGenerator
         var numericCode = AccessKeyGenerator.GenerateNumericCode();
         var accessKey = AccessKeyGenerator.Generate(
             issueDate: now,

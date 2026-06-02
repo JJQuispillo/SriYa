@@ -10,13 +10,13 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Sri;
 
 /// <summary>
-/// Configures Polly 8.x resilience pipelines for the SRI HttpClient.
-/// Includes: retry with exponential backoff, circuit breaker, and timeout.
+/// Configura los resilience pipelines de Polly 8.x para el HttpClient del SRI.
+/// Incluye: retry con exponential backoff, circuit breaker y timeout.
 /// </summary>
 public static class SriResiliencePolicies
 {
     /// <summary>
-    /// Registers ISriClient (SriSoapClient) with IHttpClientFactory and a Polly resilience pipeline.
+    /// Registra ISriClient (SriSoapClient) con IHttpClientFactory y un resilience pipeline de Polly.
     /// </summary>
     public static IServiceCollection AddSriClientWithResilience(
         this IServiceCollection services)
@@ -28,20 +28,20 @@ public static class SriResiliencePolicies
     }
 
     /// <summary>
-    /// Configures the resilience pipeline for SRI HTTP requests.
-    /// Order matters: Timeout wraps CircuitBreaker wraps Retry.
-    /// Polly executes strategies in registration order (outer to inner).
+    /// Configura el resilience pipeline para las solicitudes HTTP al SRI.
+    /// El orden importa: Timeout envuelve a CircuitBreaker que envuelve a Retry.
+    /// Polly ejecuta las estrategias en el orden de registro (de afuera hacia adentro).
     /// </summary>
     internal static void ConfigureResiliencePipeline(ResiliencePipelineBuilder<HttpResponseMessage> builder)
     {
-        // Total timeout: 30 seconds per request
+        // Timeout total: 30 segundos por solicitud
         builder.AddTimeout(new TimeoutStrategyOptions
         {
             Timeout = TimeSpan.FromSeconds(30),
             Name = "SriRequestTimeout"
         });
 
-        // Retry: 3 retries with exponential backoff (2s, 4s, 8s) for transient HTTP errors
+        // Retry: 3 reintentos con exponential backoff (2s, 4s, 8s) para errores HTTP transitorios
         builder.AddRetry(new RetryStrategyOptions<HttpResponseMessage>
         {
             MaxRetryAttempts = 3,
@@ -55,15 +55,15 @@ public static class SriResiliencePolicies
             Name = "SriRetry",
             OnRetry = static args =>
             {
-                // Logging is handled by the pipeline infrastructure
+                // El logging lo maneja la infraestructura del pipeline
                 return ValueTask.CompletedTask;
             }
         });
 
-        // Circuit breaker: open after 5 failures, stay open for 30 seconds
+        // Circuit breaker: se abre tras 5 fallos, permanece abierto 30 segundos
         builder.AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
         {
-            FailureRatio = 1.0, // All sampled must be failures
+            FailureRatio = 1.0, // Todas las muestras deben ser fallos
             SamplingDuration = TimeSpan.FromMinutes(1),
             MinimumThroughput = 5,
             BreakDuration = TimeSpan.FromSeconds(30),

@@ -37,7 +37,7 @@ public class SriTaxCodeConfiguration : IEntityTypeConfiguration<SriTaxCode>
             .HasDefaultValue(true)
             .IsRequired();
 
-        // ── Seed data: official SRI tax codes ────────────────────────────────────
+        // ── Datos de seed: códigos de impuesto oficiales del SRI ────────────────────────────────────
 
         // IVA (TaxTypeCode = "2")
         builder.HasData(

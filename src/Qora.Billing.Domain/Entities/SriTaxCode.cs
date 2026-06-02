@@ -1,8 +1,8 @@
 namespace Qora.Billing.Domain.Entities;
 
 /// <summary>
-/// Reference table for SRI (Ecuador) official tax codes used in electronic invoicing.
-/// Maps (TaxTypeCode, PercentageCode) pairs to their actual tax rates and descriptions.
+/// Tabla de referencia de los códigos de impuesto oficiales del SRI (Ecuador) usados en facturación electrónica.
+/// Mapea pares (TaxTypeCode, PercentageCode) a sus tarifas de impuesto y descripciones reales.
 /// </summary>
 public class SriTaxCode
 {
@@ -12,22 +12,22 @@ public class SriTaxCode
     public string TaxTypeCode { get; private set; } = string.Empty;
 
     /// <summary>
-    /// codigoPorcentaje — official SRI percentage code, forms composite PK with TaxTypeCode.
+    /// codigoPorcentaje — código de porcentaje oficial del SRI, forma la PK compuesta junto con TaxTypeCode.
     /// </summary>
     public string PercentageCode { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Actual tax rate percentage (e.g. 15 for IVA 15%). Zero for "No Objeto" and "Exento".
+    /// Porcentaje real de la tarifa de impuesto (p. ej. 15 para IVA 15%). Cero para "No Objeto" y "Exento".
     /// </summary>
     public decimal Rate { get; private set; }
 
     /// <summary>
-    /// Human-readable description of the tax code.
+    /// Descripción legible del código de impuesto.
     /// </summary>
     public string Description { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Indicates whether this tax code is currently valid. Historical codes are set to false.
+    /// Indica si este código de impuesto está vigente actualmente. Los códigos históricos se marcan como false.
     /// </summary>
     public bool IsActive { get; private set; }
 

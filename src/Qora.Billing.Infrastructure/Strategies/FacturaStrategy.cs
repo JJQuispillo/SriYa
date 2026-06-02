@@ -8,9 +8,9 @@ using Qora.Billing.Infrastructure.Xml;
 namespace Qora.Billing.Infrastructure.Strategies;
 
 /// <summary>
-/// Strategy for Factura (invoice) document type.
-/// Orchestrates factura-specific validation, system field auto-generation,
-/// XML generation, and RIDE PDF generation.
+/// Estrategia para el tipo de documento Factura.
+/// Orquesta la validación específica de la factura, la autogeneración de campos del sistema,
+/// la generación del XML y la generación del RIDE PDF.
 /// </summary>
 public class FacturaStrategy : IDocumentTypeStrategy
 {
@@ -19,12 +19,12 @@ public class FacturaStrategy : IDocumentTypeStrategy
     private readonly SriConfiguration _sriConfiguration;
 
     /// <summary>
-    /// Valid IVA tax rates for Ecuador (2026): 0%, 5%, 12%, 15%.
+    /// Tarifas de IVA válidas para Ecuador (2026): 0%, 5%, 12%, 15%.
     /// </summary>
     private static readonly HashSet<decimal> ValidIvaRates = [0m, 5m, 12m, 15m];
 
     /// <summary>
-    /// Threshold amount (USD) above which buyer identification is mandatory.
+    /// Monto umbral (USD) por encima del cual la identificación del comprador es obligatoria.
     /// </summary>
     private const decimal BuyerInfoRequiredThreshold = 200m;
 
@@ -41,30 +41,30 @@ public class FacturaStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Validates factura-specific business rules.
-    /// Checks ALL fields that FacturaXmlBuilder requires, using FacturaConstants
-    /// for alignment between validation and XML generation.
-    /// Returns a list of validation error messages (empty if valid).
+    /// Valida las reglas de negocio específicas de la factura.
+    /// Verifica TODOS los campos que requiere FacturaXmlBuilder, usando FacturaConstants
+    /// para mantener la alineación entre la validación y la generación del XML.
+    /// Devuelve una lista de mensajes de error de validación (vacía si es válido).
     /// </summary>
     public Task<IReadOnlyList<string>> ValidateDocumentAsync(Document document,
         CancellationToken cancellationToken = default)
     {
         var errors = new List<string>();
 
-        // Must be a Factura
+        // Debe ser una Factura
         if (document.DocumentType != DocumentType.Factura)
         {
             errors.Add($"Expected document type Factura, got {document.DocumentType}.");
             return Task.FromResult<IReadOnlyList<string>>(errors);
         }
 
-        // Must have at least one item
+        // Debe tener al menos un ítem
         if (document.Items.Count == 0)
         {
             errors.Add("Factura must have at least one line item.");
         }
 
-        // Validate IVA rates
+        // Validar las tarifas de IVA
         foreach (var item in document.Items)
         {
             if (!ValidIvaRates.Contains(item.TaxRate))
@@ -75,7 +75,7 @@ public class FacturaStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate ALL caller-provided issuer required fields (using FacturaConstants)
+        // Validar TODOS los campos obligatorios del emisor provistos por el llamador (usando FacturaConstants)
         foreach (var field in FacturaConstants.RequiredIssuerFields)
         {
             if (!document.IssuerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -84,7 +84,7 @@ public class FacturaStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate buyer info required for amounts > $200
+        // Validar la info del comprador requerida para montos > $200
         var totalAmount = document.Items.Sum(i => i.Subtotal + (i.Subtotal * i.TaxRate / 100m));
         if (totalAmount > BuyerInfoRequiredThreshold)
         {
@@ -103,8 +103,8 @@ public class FacturaStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Auto-generates system fields (ambiente, tipoEmision, claveAcceso, fechaEmision)
-    /// into the document's IssuerInfo, then delegates XML building to the injected FacturaXmlBuilder.
+    /// Autogenera los campos del sistema (ambiente, tipoEmision, claveAcceso, fechaEmision)
+    /// en el IssuerInfo del documento, luego delega la construcción del XML al FacturaXmlBuilder inyectado.
     /// </summary>
     public Task<string> BuildXmlAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -113,7 +113,7 @@ public class FacturaStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Delegates RIDE PDF building to the injected IRideGenerator.
+    /// Delega la construcción del RIDE PDF al IRideGenerator inyectado.
     /// </summary>
     public Task<byte[]> BuildRidePdfAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -121,28 +121,28 @@ public class FacturaStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Populates system-generated fields into the document's IssuerInfo dictionary
-    /// before XML generation. Uses SRI configuration for environment and emission type,
-    /// and AccessKeyGenerator for the 49-digit access key.
+    /// Rellena los campos generados por el sistema en el diccionario IssuerInfo del documento
+    /// antes de la generación del XML. Usa la configuración del SRI para el ambiente y el tipo de emisión,
+    /// y AccessKeyGenerator para la clave de acceso de 49 dígitos.
     /// </summary>
     private void PopulateSystemFields(Document document)
     {
         var issuer = document.IssuerInfo;
         var now = DateTime.UtcNow;
 
-        // Determine environment from SRI configuration
+        // Determinar el ambiente desde la configuración del SRI
         var environment = _sriConfiguration.Environment;
 
         // ambiente: 1=Test, 2=Production
         issuer["ambiente"] = ((int)environment).ToString();
 
-        // tipoEmision: always Normal (1) for standard emission
+        // tipoEmision: siempre Normal (1) para la emisión estándar
         issuer["tipoEmision"] = ((int)EmissionType.Normal).ToString();
 
-        // fechaEmision: current date in dd/MM/yyyy format (SRI format)
+        // fechaEmision: fecha actual en formato dd/MM/yyyy (formato del SRI)
         issuer["fechaEmision"] = now.ToString("dd/MM/yyyy");
 
-        // claveAcceso: 49-digit access key generated using AccessKeyGenerator
+        // claveAcceso: clave de acceso de 49 dígitos generada con AccessKeyGenerator
         var numericCode = AccessKeyGenerator.GenerateNumericCode();
         var accessKey = AccessKeyGenerator.Generate(
             issueDate: now,

@@ -5,13 +5,13 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Pdf;
 
 /// <summary>
-/// Extension methods for registering PDF generation services.
+/// Métodos de extensión para registrar los servicios de generación de PDF.
 /// </summary>
 public static class PdfServiceRegistration
 {
     /// <summary>
-    /// Registers QuestPDF license and RIDE generator services.
-    /// Must be called during application startup.
+    /// Registra la licencia de QuestPDF y los servicios del generador de RIDE.
+    /// Debe llamarse durante el arranque de la aplicación.
     /// </summary>
     public static IServiceCollection AddPdfServices(this IServiceCollection services)
     {

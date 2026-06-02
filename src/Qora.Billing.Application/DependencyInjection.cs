@@ -11,13 +11,13 @@ public static class DependencyInjection
     {
         var assembly = typeof(DependencyInjection).Assembly;
 
-        // Register MediatR handlers from this assembly
+        // Registra los handlers de MediatR de este assembly
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 
-        // Register FluentValidation validators from this assembly
+        // Registra los validadores de FluentValidation de este assembly
         services.AddValidatorsFromAssembly(assembly);
 
-        // Register pipeline behaviors (order matters: validation runs first, then logging)
+        // Registra los behaviors del pipeline (el orden importa: primero se ejecuta la validación, luego el logging)
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 

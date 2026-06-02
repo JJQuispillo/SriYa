@@ -30,8 +30,8 @@ public class GetApiKeysByTenantQueryHandler
 
     private static ApiKeyResponse MapToResponse(ApiKey apiKey)
     {
-        // Keys are stored as hashes — never return the actual key value.
-        // The key field is set to null for list responses.
+        // Las keys se almacenan como hashes — nunca se devuelve el valor real de la key.
+        // El campo de la key se establece en null para las respuestas de listado.
         return new ApiKeyResponse(
             apiKey.Id,
             apiKey.Name,

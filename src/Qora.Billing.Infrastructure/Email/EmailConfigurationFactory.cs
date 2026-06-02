@@ -5,8 +5,8 @@ using Qora.Billing.Domain.ValueObjects;
 namespace Qora.Billing.Infrastructure.Email;
 
 /// <summary>
-/// Factory methods for building <see cref="EmailConfiguration"/> from appsettings or tenant data.
-/// Kept in Infrastructure to avoid a Domain → Application dependency.
+/// Métodos de fábrica para construir <see cref="EmailConfiguration"/> a partir de appsettings o datos del tenant.
+/// Se mantiene en Infrastructure para evitar una dependencia Domain → Application.
 /// </summary>
 public static class EmailConfigurationFactory
 {

@@ -42,11 +42,11 @@ public class DestinatarioItemConfiguration : IEntityTypeConfiguration<Destinatar
             .HasColumnName("updated_at")
             .IsRequired();
 
-        // Index for lookups by destinatario
+        // Índice para búsquedas por destinatario
         builder.HasIndex(i => i.DestinatarioId)
             .HasDatabaseName("ix_document_destinatario_items_destinatario_id");
 
-        // Ignore domain events collection (not persisted)
+        // Ignorar la colección de eventos de dominio (no se persiste)
         builder.Ignore(i => i.DomainEvents);
     }
 }

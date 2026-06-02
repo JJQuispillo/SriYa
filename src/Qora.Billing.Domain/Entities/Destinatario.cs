@@ -1,8 +1,8 @@
 namespace Qora.Billing.Domain.Entities;
 
 /// <summary>
-/// Represents a destinatario (recipient) in a GuiaRemision document.
-/// Each destinatario has its own identity fields and a list of transported items.
+/// Representa un destinatario en un documento GuiaRemision.
+/// Cada destinatario tiene sus propios campos de identidad y una lista de ítems transportados.
 /// </summary>
 public class Destinatario : BaseEntity
 {

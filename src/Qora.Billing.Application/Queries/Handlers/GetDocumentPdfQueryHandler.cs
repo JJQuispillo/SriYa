@@ -23,7 +23,7 @@ public class GetDocumentPdfQueryHandler : IRequestHandler<GetDocumentPdfQuery, b
         if (document is null || document.TenantId != query.TenantId)
             return null;
 
-        // Only authorized documents can have RIDE PDFs generated
+        // Solo los documentos autorizados pueden generar PDFs del RIDE
         if (document.Status != DocumentStatus.Authorized)
             return null;
 

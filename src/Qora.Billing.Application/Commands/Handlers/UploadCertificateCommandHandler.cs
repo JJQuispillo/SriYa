@@ -29,7 +29,7 @@ public class UploadCertificateCommandHandler : IRequestHandler<UploadCertificate
             ?? throw new BillingDomainException($"Tenant {command.TenantId} no encontrado.");
         tenant.EnsureActive();
 
-        // Extract expiration date from the PKCS#12 certificate
+        // Extrae la fecha de expiración del certificado PKCS#12
         DateTime expiresAt;
         try
         {
@@ -41,7 +41,7 @@ public class UploadCertificateCommandHandler : IRequestHandler<UploadCertificate
             throw new BillingDomainException($"Certificado o contraseña inválidos: {ex.Message}", ex);
         }
 
-        // Deactivate any existing active certificate for this tenant
+        // Desactiva cualquier certificado activo existente para este tenant
         var existingCert = await _signatureRepository.GetActiveByTenantIdAsync(command.TenantId, cancellationToken);
         if (existingCert is not null)
         {
@@ -49,12 +49,12 @@ public class UploadCertificateCommandHandler : IRequestHandler<UploadCertificate
             await _signatureRepository.UpdateAsync(existingCert, cancellationToken);
         }
 
-        // Store certificate data and encrypted password
-        // In production, the password should be encrypted with a data protection key before storage
+        // Almacena los datos del certificado y la contraseña cifrada
+        // En producción, la contraseña debería cifrarse con una clave de data protection antes de almacenarla
         var signature = ElectronicSignature.Create(
             command.TenantId,
             command.CertificateData,
-            command.Password, // Should be encrypted in production
+            command.Password, // Debería cifrarse en producción
             command.OwnerName,
             expiresAt);
 

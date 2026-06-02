@@ -3,8 +3,8 @@ using Qora.Billing.Domain.Exceptions;
 namespace Qora.Billing.Domain.ValueObjects;
 
 /// <summary>
-/// Represents a 13-digit Ecuadorian RUC (Registro Unico de Contribuyentes).
-/// Validates format: 13 digits, first two are province code (01-24 or 30), third digit determines type.
+/// Representa un RUC ecuatoriano de 13 dígitos (Registro Unico de Contribuyentes).
+/// Valida el formato: 13 dígitos, los dos primeros son el código de provincia (01-24 o 30), el tercer dígito determina el tipo.
 /// </summary>
 public sealed record Ruc
 {

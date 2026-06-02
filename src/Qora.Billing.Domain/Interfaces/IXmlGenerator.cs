@@ -3,7 +3,7 @@ using Qora.Billing.Domain.Entities;
 namespace Qora.Billing.Domain.Interfaces;
 
 /// <summary>
-/// Generates the unsigned XML representation of a billing document.
+/// Genera la representación XML sin firmar de un documento de facturación.
 /// </summary>
 public interface IXmlGenerator
 {

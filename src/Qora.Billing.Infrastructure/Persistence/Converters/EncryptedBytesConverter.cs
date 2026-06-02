@@ -5,10 +5,10 @@ using System.Text;
 namespace Qora.Billing.Infrastructure.Persistence.Converters;
 
 /// <summary>
-/// EF Core value converter that transparently AES-256-encrypts byte[] columns at rest,
-/// storing the result as Base64 text.
-/// Format: [16-byte salt][16-byte IV][ciphertext] encoded as Base64.
-/// Key derivation uses HKDF-SHA256 with a per-value random salt for security.
+/// Value converter de EF Core que cifra de forma transparente las columnas byte[] en reposo con AES-256,
+/// almacenando el resultado como texto Base64.
+/// Formato: [salt de 16 bytes][IV de 16 bytes][texto cifrado] codificado en Base64.
+/// La derivación de la clave usa HKDF-SHA256 con un salt aleatorio por valor por seguridad.
 /// </summary>
 public class EncryptedBytesConverter(string encryptionKey) : ValueConverter<byte[]?, string?>(
     v => v == null ? null : Encrypt(v, encryptionKey),
@@ -16,7 +16,7 @@ public class EncryptedBytesConverter(string encryptionKey) : ValueConverter<byte
 {
     private static string Encrypt(byte[] plainBytes, string key)
     {
-        // Generate random 16-byte salt for HKDF key derivation
+        // Generar un salt aleatorio de 16 bytes para la derivación de la clave HKDF
         var salt = RandomNumberGenerator.GetBytes(16);
 
         using var aes = Aes.Create();
@@ -26,7 +26,7 @@ public class EncryptedBytesConverter(string encryptionKey) : ValueConverter<byte
         using var encryptor = aes.CreateEncryptor();
         var encryptedBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
 
-        // Format: [16-byte salt][16-byte IV][ciphertext]
+        // Formato: [salt de 16 bytes][IV de 16 bytes][texto cifrado]
         var result = new byte[salt.Length + aes.IV.Length + encryptedBytes.Length];
         Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
         Buffer.BlockCopy(aes.IV, 0, result, salt.Length, aes.IV.Length);
@@ -58,14 +58,14 @@ public class EncryptedBytesConverter(string encryptionKey) : ValueConverter<byte
         return decryptor.TransformFinalBlock(encrypted, 0, encrypted.Length);
     }
 
-    /// <summary>Encrypt non-nullable bytes. Used by non-nullable property configs.</summary>
+    /// <summary>Cifra bytes no anulables. Usado por las configuraciones de propiedades no anulables.</summary>
     internal static string EncryptValue(byte[] plainBytes, string key) => Encrypt(plainBytes, key);
 
-    /// <summary>Decrypt to non-nullable bytes. Used by non-nullable property configs.</summary>
+    /// <summary>Descifra a bytes no anulables. Usado por las configuraciones de propiedades no anulables.</summary>
     internal static byte[] DecryptValue(string cipherText, string key) => Decrypt(cipherText, key);
 
     /// <summary>
-    /// Derives a 32-byte AES key from the master key and a per-value salt using HKDF-SHA256.
+    /// Deriva una clave AES de 32 bytes a partir de la clave maestra y un salt por valor usando HKDF-SHA256.
     /// </summary>
     private static byte[] DeriveKey(string key, byte[] salt) =>
         HKDF.DeriveKey(

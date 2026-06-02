@@ -9,18 +9,18 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Xml;
 
 /// <summary>
-/// Generates unsigned XML for Comprobante de Retención documents following
-/// SRI Ecuador schema v2.0.0. Uses System.Xml.Linq for XML construction.
+/// Genera el XML sin firmar para documentos Comprobante de Retención siguiendo
+/// el esquema v2.0.0 del SRI Ecuador. Usa System.Xml.Linq para la construcción del XML.
 ///
-/// DocumentItem field mapping for retenciones:
-///   item.TaxCode                    → impuesto/codigo              (SRI tax type: "1"=Renta, "2"=IVA, "6"=ISD)
-///   item.TaxPercentageCode          → impuesto/codigoPorcentaje    (SRI retention % code)
-///   item.TaxRate                    → impuesto/tarifa              (retention percentage, e.g. 1.75)
-///   item.Quantity * item.UnitPrice  → impuesto/baseImponible       (gross base, pre-discount per SRI)
-///   baseImponible * tarifa / 100    → impuesto/valorRetenido       (computed; no TaxAmount field exists)
-///   item.SustentoDocumentType       → impuesto/codDocSustento      (falls back to item.MainCode when null)
+/// Mapeo de los campos de DocumentItem para las retenciones:
+///   item.TaxCode                    → impuesto/codigo              (tipo de impuesto del SRI: "1"=Renta, "2"=IVA, "6"=ISD)
+///   item.TaxPercentageCode          → impuesto/codigoPorcentaje    (código de % de retención del SRI)
+///   item.TaxRate                    → impuesto/tarifa              (porcentaje de retención, ej. 1.75)
+///   item.Quantity * item.UnitPrice  → impuesto/baseImponible       (base bruta, pre-descuento según el SRI)
+///   baseImponible * tarifa / 100    → impuesto/valorRetenido       (calculado; no existe campo TaxAmount)
+///   item.SustentoDocumentType       → impuesto/codDocSustento      (usa item.MainCode como respaldo cuando es null)
 ///   item.SustentoDocumentNumber     → impuesto/numDocSustento
-///   item.SustentoDocumentIssueDate  → impuesto/fechaEmisionDocSustento (formatted dd/MM/yyyy)
+///   item.SustentoDocumentIssueDate  → impuesto/fechaEmisionDocSustento (formateado dd/MM/yyyy)
 ///   item.SustentoDocumentAuthNumber → impuesto/numAutDocSustento
 /// </summary>
 public class ComprobanteRetencionXmlBuilder : IXmlGenerator
@@ -47,7 +47,7 @@ public class ComprobanteRetencionXmlBuilder : IXmlGenerator
             BuildImpuestos(document),
             BuildInfoAdicional(document));
 
-        // UTF-8 without BOM
+        // UTF-8 sin BOM
         var settings = new System.Xml.XmlWriterSettings
         {
             Encoding = new UTF8Encoding(false),
@@ -113,10 +113,10 @@ public class ComprobanteRetencionXmlBuilder : IXmlGenerator
 
         foreach (var item in document.Items)
         {
-            // baseImponible = Quantity * UnitPrice (gross, pre-discount, per SRI retention schema)
+            // baseImponible = Quantity * UnitPrice (bruto, pre-descuento, según el esquema de retención del SRI)
             var baseImponible = item.Quantity * item.UnitPrice;
 
-            // valorRetenido computed from base and tarifa (DocumentItem has no TaxAmount field)
+            // valorRetenido calculado a partir de la base y la tarifa (DocumentItem no tiene campo TaxAmount)
             var valorRetenido = baseImponible * item.TaxRate / 100m;
 
             // codDocSustento: typed domain property, falls back to MainCode when null
@@ -124,7 +124,7 @@ public class ComprobanteRetencionXmlBuilder : IXmlGenerator
                 ? item.SustentoDocumentType
                 : item.MainCode;
 
-            // fechaEmisionDocSustento formatted as dd/MM/yyyy per SRI schema
+            // fechaEmisionDocSustento formateado como dd/MM/yyyy según el esquema del SRI
             var fechaEmision = item.SustentoDocumentIssueDate.HasValue
                 ? item.SustentoDocumentIssueDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)
                 : string.Empty;
@@ -172,8 +172,8 @@ public class ComprobanteRetencionXmlBuilder : IXmlGenerator
     }
 
     /// <summary>
-    /// Validates that all required fields from ComprobanteRetencionConstants are present
-    /// in the document before XML generation proceeds.
+    /// Valida que todos los campos obligatorios de ComprobanteRetencionConstants estén presentes
+    /// en el documento antes de proceder con la generación del XML.
     /// </summary>
     private static void ValidateRequiredFields(Document document)
     {

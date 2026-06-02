@@ -3,8 +3,8 @@ using Qora.Billing.Domain.ValueObjects;
 namespace Qora.Billing.Infrastructure.Email;
 
 /// <summary>
-/// Low-level SMTP email delivery abstraction.
-/// Implementations choose their credential source (Qora platform vs. custom tenant config).
+/// Abstracción de bajo nivel para el envío de email por SMTP.
+/// Las implementaciones eligen su fuente de credenciales (plataforma Qora vs. configuración personalizada del tenant).
 /// </summary>
 public interface IEmailProvider
 {

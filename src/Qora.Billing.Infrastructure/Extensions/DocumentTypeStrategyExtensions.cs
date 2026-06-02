@@ -4,19 +4,19 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Extensions;
 
 /// <summary>
-/// Extension methods for resolving <see cref="IDocumentTypeStrategy"/> instances
-/// from a collection of registered strategies.
+/// Métodos de extensión para resolver instancias de <see cref="IDocumentTypeStrategy"/>
+/// a partir de una colección de estrategias registradas.
 /// </summary>
 public static class DocumentTypeStrategyExtensions
 {
     /// <summary>
-    /// Resolves the strategy registered for the given <paramref name="documentType"/>.
+    /// Resuelve la estrategia registrada para el <paramref name="documentType"/> dado.
     /// </summary>
-    /// <param name="strategies">The collection of all registered strategies.</param>
-    /// <param name="documentType">The document type to resolve a strategy for.</param>
-    /// <returns>The matching <see cref="IDocumentTypeStrategy"/>.</returns>
+    /// <param name="strategies">La colección de todas las estrategias registradas.</param>
+    /// <param name="documentType">El tipo de documento para el que se resuelve una estrategia.</param>
+    /// <returns>El <see cref="IDocumentTypeStrategy"/> coincidente.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when no strategy is registered for the requested document type.
+    /// Se lanza cuando no hay ninguna estrategia registrada para el tipo de documento solicitado.
     /// </exception>
     public static IDocumentTypeStrategy ResolveByDocumentType(
         this IEnumerable<IDocumentTypeStrategy> strategies,

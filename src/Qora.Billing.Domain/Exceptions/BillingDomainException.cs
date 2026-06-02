@@ -1,7 +1,7 @@
 namespace Qora.Billing.Domain.Exceptions;
 
 /// <summary>
-/// Base exception for all billing domain errors.
+/// Excepción base para todos los errores del dominio de facturación.
 /// </summary>
 public class BillingDomainException : Exception
 {

@@ -3,8 +3,8 @@ using Qora.Billing.Domain.Entities;
 namespace Qora.Billing.Domain.Interfaces;
 
 /// <summary>
-/// Strategy interface for document-type-specific behavior (Factura, NotaCredito, etc.).
-/// Each document type implements this to provide its own XML structure, validation, and RIDE layout.
+/// Interfaz de estrategia para el comportamiento específico de cada tipo de documento (Factura, NotaCredito, etc.).
+/// Cada tipo de documento la implementa para proveer su propia estructura XML, validación y diseño del RIDE.
 /// </summary>
 public interface IDocumentTypeStrategy
 {

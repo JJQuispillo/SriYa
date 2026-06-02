@@ -9,8 +9,8 @@ using Qora.Billing.Application.Queries;
 namespace Qora.Billing.Api.Endpoints;
 
 /// <summary>
-/// Minimal API endpoints for electronic document operations.
-/// All endpoints require ApiKey authentication and tenant context.
+/// Endpoints de Minimal API para las operaciones de documentos electrónicos.
+/// Todos los endpoints requieren autenticación ApiKey y contexto de tenant.
 /// </summary>
 public static class DocumentEndpoints
 {
@@ -149,6 +149,6 @@ public static class DocumentEndpoints
 }
 
 /// <summary>
-/// Request body for voiding a document.
+/// Cuerpo de la solicitud para anular un documento.
 /// </summary>
 public record VoidDocumentRequest(string Reason);

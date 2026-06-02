@@ -10,13 +10,13 @@ using Qora.Billing.Domain.Enums;
 namespace Qora.Billing.Api.Endpoints;
 
 /// <summary>
-/// Minimal API endpoints for email delivery configuration and dispatch.
+/// Endpoints de Minimal API para la configuración y el envío de correos electrónicos.
 /// </summary>
 public static class EmailEndpoints
 {
     public static IEndpointRouteBuilder MapEmailEndpoints(this IEndpointRouteBuilder routes)
     {
-        // ── Document email dispatch ──────────────────────────────────────
+        // ── Envío de documentos por correo ──────────────────────────────────────
         var docs = routes.MapGroup("/api/v1/documents")
             .RequireAuthorization()
             .RequireRateLimiting("api-key-policy")
@@ -27,7 +27,7 @@ public static class EmailEndpoints
             .WithName("SendDocumentEmail")
             .WithSummary("Send the authorized document to the buyer's email address");
 
-        // ── Tenant email settings ────────────────────────────────────────
+        // ── Configuración de correo del tenant ────────────────────────────────────────
         var tenants = routes.MapGroup("/api/v1/tenants")
             .RequireAuthorization()
             .RequireRateLimiting("api-key-policy")
@@ -109,7 +109,7 @@ public static class EmailEndpoints
 }
 
 /// <summary>
-/// Request body for configuring email settings.
+/// Cuerpo de la solicitud para configurar los ajustes de correo.
 /// </summary>
 public record ConfigureEmailSettingsRequest(
     bool EmailEnabled,

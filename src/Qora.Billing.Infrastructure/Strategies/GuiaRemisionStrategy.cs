@@ -8,10 +8,10 @@ using Qora.Billing.Infrastructure.Xml;
 namespace Qora.Billing.Infrastructure.Strategies;
 
 /// <summary>
-/// Strategy for Guía de Remisión (transport document) document type.
-/// Orchestrates guía-specific validation, system field auto-generation,
-/// XML generation, and RIDE PDF generation (stub for MVP).
-/// No IVA validation — guías de remisión carry goods, not taxes.
+/// Estrategia para el tipo de documento Guía de Remisión (documento de transporte).
+/// Orquesta la validación específica de la guía, la autogeneración de campos del sistema,
+/// la generación del XML y la generación del RIDE PDF (stub para el MVP).
+/// Sin validación de IVA — las guías de remisión transportan mercancías, no impuestos.
 /// </summary>
 public class GuiaRemisionStrategy : IDocumentTypeStrategy
 {
@@ -32,32 +32,32 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Validates guía de remisión-specific business rules.
-    /// Checks issuer, transporter, and destinatario fields using GuiaRemisionConstants.
-    /// No IVA rate validation — guías de remisión do not carry tax information.
-    /// Returns a list of validation error messages (empty if valid).
+    /// Valida las reglas de negocio específicas de la guía de remisión.
+    /// Verifica los campos del emisor, transportista y destinatario usando GuiaRemisionConstants.
+    /// Sin validación de tarifa de IVA — las guías de remisión no llevan información tributaria.
+    /// Devuelve una lista de mensajes de error de validación (vacía si es válido).
     /// </summary>
     public Task<IReadOnlyList<string>> ValidateDocumentAsync(Document document,
         CancellationToken cancellationToken = default)
     {
         var errors = new List<string>();
 
-        // Must be a GuiaRemision
+        // Debe ser una GuiaRemision
         if (document.DocumentType != DocumentType.GuiaRemision)
         {
             errors.Add($"Expected document type GuiaRemision, got {document.DocumentType}.");
             return Task.FromResult<IReadOnlyList<string>>(errors);
         }
 
-        // ── Destinatario validation ──────────────────────────────────────────
+        // ── Validación del destinatario ──────────────────────────────────────────
         if (document.Destinatarios.Count == 0 && document.BuyerInfo.Count == 0)
         {
-            // Neither new-style entities nor legacy BuyerInfo present
+            // No hay ni entidades del nuevo estilo ni el BuyerInfo legado
             errors.Add("GuiaRemision requires at least one destinatario.");
         }
         else if (document.Destinatarios.Count == 0)
         {
-            // Legacy path: must have at least one item and valid BuyerInfo destinatario fields
+            // Ruta legada: debe tener al menos un ítem y campos de destinatario válidos en BuyerInfo
             if (document.Items.Count == 0)
             {
                 errors.Add("Guía de Remisión must have at least one line item.");
@@ -73,7 +73,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
         }
         else
         {
-            // Multi-destinatario path: validate each Destinatario entity
+            // Ruta multi-destinatario: validar cada entidad Destinatario
             for (var i = 0; i < document.Destinatarios.Count; i++)
             {
                 var dest = document.Destinatarios.ElementAt(i);
@@ -101,7 +101,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
                 }
             }
 
-            // Shared sustento doc fields (document-level) are in BuyerInfo
+            // Los campos compartidos del documento de sustento (a nivel de documento) están en BuyerInfo
             foreach (var field in GuiaRemisionConstants.RequiredSustentoDocFields)
             {
                 if (!document.BuyerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -111,9 +111,9 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // ── Issuer validation ────────────────────────────────────────────────
+        // ── Validación del emisor ────────────────────────────────────────────────
 
-        // Validate caller-provided issuer required fields
+        // Validar los campos obligatorios del emisor provistos por el llamador
         foreach (var field in GuiaRemisionConstants.RequiredIssuerFields)
         {
             if (!document.IssuerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -122,7 +122,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate transporter fields (stored in IssuerInfo)
+        // Validar los campos del transportista (almacenados en IssuerInfo)
         foreach (var field in GuiaRemisionConstants.RequiredTransporterFields)
         {
             if (!document.IssuerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -131,7 +131,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate rucTransportista: must be exactly 13 numeric digits
+        // Validar rucTransportista: debe tener exactamente 13 dígitos numéricos
         if (document.IssuerInfo.TryGetValue("rucTransportista", out var rucTransportista)
             && !string.IsNullOrWhiteSpace(rucTransportista))
         {
@@ -141,7 +141,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate transport date fields
+        // Validar los campos de fechas de transporte
         if (document.IssuerInfo.TryGetValue("fechaInicioTransporte", out var fechaInicio)
             && !string.IsNullOrWhiteSpace(fechaInicio))
         {
@@ -166,7 +166,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate fechaFinTransporte >= fechaInicioTransporte (only if both are valid dates)
+        // Validar fechaFinTransporte >= fechaInicioTransporte (solo si ambas son fechas válidas)
         if (document.IssuerInfo.TryGetValue("fechaInicioTransporte", out var rawInicio)
             && document.IssuerInfo.TryGetValue("fechaFinTransporte", out var rawFin)
             && !string.IsNullOrWhiteSpace(rawInicio)
@@ -190,8 +190,8 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Auto-generates system fields (ambiente, tipoEmision, claveAcceso, fechaEmision)
-    /// into the document's IssuerInfo, then delegates XML building to the injected GuiaRemisionXmlBuilder.
+    /// Autogenera los campos del sistema (ambiente, tipoEmision, claveAcceso, fechaEmision)
+    /// en el IssuerInfo del documento, luego delega la construcción del XML al GuiaRemisionXmlBuilder inyectado.
     /// </summary>
     public Task<string> BuildXmlAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -200,7 +200,7 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Generates RIDE PDF for Guía de Remisión by delegating to the shared RideGenerator.
+    /// Genera el RIDE PDF para la Guía de Remisión delegando al RideGenerator compartido.
     /// </summary>
     public Task<byte[]> BuildRidePdfAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -208,28 +208,28 @@ public class GuiaRemisionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Populates system-generated fields into the document's IssuerInfo dictionary
-    /// before XML generation. Uses SRI configuration for environment and emission type,
-    /// and AccessKeyGenerator for the 49-digit access key.
+    /// Rellena los campos generados por el sistema en el diccionario IssuerInfo del documento
+    /// antes de la generación del XML. Usa la configuración del SRI para el ambiente y el tipo de emisión,
+    /// y AccessKeyGenerator para la clave de acceso de 49 dígitos.
     /// </summary>
     private void PopulateSystemFields(Document document)
     {
         var issuer = document.IssuerInfo;
         var now = DateTime.UtcNow;
 
-        // Determine environment from SRI configuration
+        // Determinar el ambiente desde la configuración del SRI
         var environment = _sriConfiguration.Environment;
 
         // ambiente: 1=Test, 2=Production
         issuer["ambiente"] = ((int)environment).ToString();
 
-        // tipoEmision: always Normal (1) for standard emission
+        // tipoEmision: siempre Normal (1) para la emisión estándar
         issuer["tipoEmision"] = ((int)EmissionType.Normal).ToString();
 
-        // fechaEmision: current date in dd/MM/yyyy format (SRI format)
+        // fechaEmision: fecha actual en formato dd/MM/yyyy (formato del SRI)
         issuer["fechaEmision"] = now.ToString("dd/MM/yyyy");
 
-        // claveAcceso: 49-digit access key generated using AccessKeyGenerator
+        // claveAcceso: clave de acceso de 49 dígitos generada con AccessKeyGenerator
         var numericCode = AccessKeyGenerator.GenerateNumericCode();
         var accessKey = AccessKeyGenerator.Generate(
             issueDate: now,

@@ -3,7 +3,7 @@ using Qora.Billing.Domain.Events;
 namespace Qora.Billing.Domain.Entities;
 
 /// <summary>
-/// Base class for all domain entities. Provides identity, timestamps, and domain event support.
+/// Clase base para todas las entidades de dominio. Provee identidad, timestamps y soporte de eventos de dominio.
 /// </summary>
 public abstract class BaseEntity
 {

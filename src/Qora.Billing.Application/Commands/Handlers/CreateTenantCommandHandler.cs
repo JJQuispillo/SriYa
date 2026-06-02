@@ -19,7 +19,7 @@ public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, T
 
     public async Task<TenantResponse> Handle(CreateTenantCommand command, CancellationToken cancellationToken)
     {
-        // Check for duplicate RUC
+        // Verifica si hay un RUC duplicado
         var existing = await _tenantRepository.GetByRucAsync(command.Request.Ruc, cancellationToken);
         if (existing is not null)
             throw new BillingDomainException($"Ya existe un tenant con el RUC '{command.Request.Ruc}'.");

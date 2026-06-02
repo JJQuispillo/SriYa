@@ -1,7 +1,7 @@
 namespace Qora.Billing.Domain.ValueObjects;
 
 /// <summary>
-/// Immutable SMTP configuration value object used for sending emails.
+/// Value object inmutable de configuración SMTP usado para el envío de emails.
 /// </summary>
 public record EmailConfiguration(
     string SmtpHost,

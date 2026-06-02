@@ -16,7 +16,7 @@ using Qora.Billing.Infrastructure.Xml;
 namespace Qora.Billing.Infrastructure;
 
 /// <summary>
-/// Extension methods for registering all Infrastructure layer services.
+/// Métodos de extensión para registrar todos los servicios de la capa de Infrastructure.
 /// </summary>
 public static class DependencyInjection
 {
@@ -24,14 +24,14 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Database
+        // Base de datos
         services.AddDbContext<BillingDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("BillingDb")
                     ?? "Host=localhost;Database=billing;Username=postgres;Password=postgres",
                 npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(BillingDbContext).Assembly.GetName().Name)));
 
-        // Repositories
+        // Repositorios
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
@@ -40,7 +40,7 @@ public static class DependencyInjection
         services.AddScoped<ISriTaxCodeRepository, SriTaxCodeRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // XML builders (concrete singleton registrations, one per document type)
+        // Constructores de XML (registros singleton concretos, uno por tipo de documento)
         services.AddSingleton<FacturaXmlBuilder>();
         services.AddSingleton<NotaCreditoXmlBuilder>();
         services.AddSingleton<NotaDebitoXmlBuilder>();
@@ -48,20 +48,20 @@ public static class DependencyInjection
         services.AddSingleton<GuiaRemisionXmlBuilder>();
         services.AddSingleton<ComprobanteRetencionXmlBuilder>();
 
-        // IXmlGenerator interface mapping (used by FacturaStrategy)
+        // Mapeo de la interfaz IXmlGenerator (usada por FacturaStrategy)
         services.AddSingleton<IXmlGenerator, FacturaXmlBuilder>();
 
-        // Document signing
+        // Firma de documentos
         services.AddSingleton<IDocumentSigner, XadesBesSigner>();
 
-        // SRI SOAP client with Polly resilience (retry, circuit breaker, timeout)
+        // Cliente SOAP del SRI con resiliencia Polly (retry, circuit breaker, timeout)
         services.Configure<SriConfiguration>(configuration.GetSection(SriConfiguration.SectionName));
         services.AddSriClientWithResilience();
 
-        // Background services
+        // Servicios en segundo plano
         services.AddHostedService<SriRetryService>();
 
-        // Document type strategies (IEnumerable<IDocumentTypeStrategy> pattern)
+        // Estrategias por tipo de documento (patrón IEnumerable<IDocumentTypeStrategy>)
         services.AddScoped<IDocumentTypeStrategy, FacturaStrategy>();
         services.AddScoped<IDocumentTypeStrategy, NotaCreditoStrategy>();
         services.AddScoped<IDocumentTypeStrategy, NotaDebitoStrategy>();
@@ -69,10 +69,10 @@ public static class DependencyInjection
         services.AddScoped<IDocumentTypeStrategy, GuiaRemisionStrategy>();
         services.AddScoped<IDocumentTypeStrategy, ComprobanteRetencionStrategy>();
 
-        // PDF / RIDE generation
+        // Generación de PDF / RIDE
         services.AddPdfServices();
 
-        // Email delivery
+        // Envío de email
         services.Configure<QoraEmailSettings>(configuration.GetSection(QoraEmailSettings.SectionName));
         services.AddScoped<QoraEmailProvider>();
         services.AddScoped<CustomEmailProvider>();

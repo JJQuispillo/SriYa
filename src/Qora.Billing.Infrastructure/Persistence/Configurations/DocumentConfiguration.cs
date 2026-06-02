@@ -96,15 +96,15 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .HasColumnName("updated_at")
             .IsRequired();
 
-        // Relationships
+        // Relaciones
         builder.HasMany(d => d.Items)
             .WithOne()
             .HasForeignKey(i => i.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Navigation to DocumentEvents (no navigation property on Document, configured from DocumentEvent side)
+        // Navegación hacia DocumentEvents (sin propiedad de navegación en Document, configurada desde el lado de DocumentEvent)
 
-        // Indexes
+        // Índices
         builder.HasIndex(d => new { d.TenantId, d.Status })
             .HasDatabaseName("ix_documents_tenant_id_status");
 
@@ -113,7 +113,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .HasDatabaseName("ix_documents_access_key")
             .HasFilter("access_key IS NOT NULL");
 
-        // Ignore domain events collection (not persisted)
+        // Ignorar la colección de eventos de dominio (no se persiste)
         builder.Ignore(d => d.DomainEvents);
     }
 }

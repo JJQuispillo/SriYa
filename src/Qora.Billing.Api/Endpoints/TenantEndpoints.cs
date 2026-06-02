@@ -9,9 +9,9 @@ using Qora.Billing.Application.Queries;
 namespace Qora.Billing.Api.Endpoints;
 
 /// <summary>
-/// Minimal API endpoints for tenant management.
-/// POST requires ServiceToken auth (internal use only).
-/// GET/PUT require ApiKey or ServiceToken auth.
+/// Endpoints de Minimal API para la gestión de tenants.
+/// POST requiere autenticación ServiceToken (solo para uso interno).
+/// GET/PUT requieren autenticación ApiKey o ServiceToken.
 /// </summary>
 public static class TenantEndpoints
 {

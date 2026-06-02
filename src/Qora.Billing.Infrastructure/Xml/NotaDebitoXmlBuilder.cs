@@ -9,10 +9,10 @@ using Qora.Billing.Domain.Interfaces;
 namespace Qora.Billing.Infrastructure.Xml;
 
 /// <summary>
-/// Generates unsigned XML for Nota de Débito documents following SRI XSD v1.0.0 schema.
-/// Key difference from Factura: charges are expressed as <motivos> (not <detalles>).
-/// Each DocumentItem maps to one <motivo> with razon and valor.
-/// Uses System.Xml.Linq for cleaner XML construction.
+/// Genera el XML sin firmar para documentos Nota de Débito siguiendo el esquema XSD v1.0.0 del SRI.
+/// Diferencia clave respecto a la Factura: los cargos se expresan como <motivos> (no <detalles>).
+/// Cada DocumentItem se mapea a un <motivo> con razon y valor.
+/// Usa System.Xml.Linq para una construcción de XML más limpia.
 /// </summary>
 public class NotaDebitoXmlBuilder : IXmlGenerator
 {
@@ -37,7 +37,7 @@ public class NotaDebitoXmlBuilder : IXmlGenerator
             BuildMotivos(document),
             BuildInfoAdicional(document));
 
-        // UTF-8 without BOM
+        // UTF-8 sin BOM
         var settings = new System.Xml.XmlWriterSettings
         {
             Encoding = new UTF8Encoding(false),
@@ -102,7 +102,7 @@ public class NotaDebitoXmlBuilder : IXmlGenerator
 
     private static XElement BuildImpuestos(Document document)
     {
-        // Group items by TaxCode + TaxPercentageCode, using UnitPrice * Quantity as base (no discount for NdD)
+        // Agrupar los ítems por TaxCode + TaxPercentageCode, usando UnitPrice * Quantity como base (sin descuento para NdD)
         var taxGroups = document.Items
             .GroupBy(i => new { i.TaxCode, i.TaxPercentageCode, i.TaxRate })
             .Select(g => new

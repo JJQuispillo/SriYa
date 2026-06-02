@@ -8,16 +8,16 @@ using Qora.Billing.Infrastructure.Xml;
 namespace Qora.Billing.Infrastructure.Strategies;
 
 /// <summary>
-/// Strategy for Comprobante de Retención document type.
-/// Orchestrates retention-specific validation, system field auto-generation,
-/// XML generation, and RIDE PDF generation.
+/// Estrategia para el tipo de documento Comprobante de Retención.
+/// Orquesta la validación específica de la retención, la autogeneración de campos del sistema,
+/// la generación del XML y la generación del RIDE PDF.
 ///
-/// DocumentItem field usage:
-///   item.TaxCode              → validated against ValidTaxCodes ("1"=Renta, "2"=IVA, "6"=ISD)
-///   item.TaxPercentageCode    → SRI retention percentage code (passed through to XML)
-///   item.TaxRate              → retention percentage, must be > 0
-///   item.SustentoDocumentType → SRI code for the type of sustento document (required)
-///   item.SustentoDocumentNumber → number of the sustento document (required)
+/// Uso de los campos de DocumentItem:
+///   item.TaxCode              → validado contra ValidTaxCodes ("1"=Renta, "2"=IVA, "6"=ISD)
+///   item.TaxPercentageCode    → código de porcentaje de retención del SRI (se pasa al XML)
+///   item.TaxRate              → porcentaje de retención, debe ser > 0
+///   item.SustentoDocumentType → código del SRI para el tipo de documento de sustento (requerido)
+///   item.SustentoDocumentNumber → número del documento de sustento (requerido)
 /// </summary>
 public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
 {
@@ -26,7 +26,7 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
     private readonly SriConfiguration _sriConfiguration;
 
     /// <summary>
-    /// Regex pattern for periodoFiscal: MM/YYYY format.
+    /// Patrón regex para periodoFiscal: formato MM/YYYY.
     /// </summary>
     private static readonly System.Text.RegularExpressions.Regex PeriodoFiscalRegex =
         new(@"^\d{2}/\d{4}$", System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -44,28 +44,28 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Validates comprobante de retención-specific business rules.
-    /// Returns a list of validation error messages (empty if valid).
+    /// Valida las reglas de negocio específicas del comprobante de retención.
+    /// Devuelve una lista de mensajes de error de validación (vacía si es válido).
     /// </summary>
     public Task<IReadOnlyList<string>> ValidateDocumentAsync(Document document,
         CancellationToken cancellationToken = default)
     {
         var errors = new List<string>();
 
-        // Must be a ComprobanteRetencion
+        // Debe ser un ComprobanteRetencion
         if (document.DocumentType != DocumentType.ComprobanteRetencion)
         {
             errors.Add($"Expected document type ComprobanteRetencion, got {document.DocumentType}.");
             return Task.FromResult<IReadOnlyList<string>>(errors);
         }
 
-        // Must have at least one retention line
+        // Debe tener al menos una línea de retención
         if (document.Items.Count == 0)
         {
             errors.Add("Comprobante de Retención must have at least one retention line (impuesto).");
         }
 
-        // Validate caller-provided issuer required fields
+        // Validar los campos obligatorios del emisor provistos por el llamador
         foreach (var field in ComprobanteRetencionConstants.RequiredIssuerFields)
         {
             if (!document.IssuerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -74,7 +74,7 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate periodoFiscal format: MM/YYYY
+        // Validar el formato de periodoFiscal: MM/YYYY
         if (document.IssuerInfo.TryGetValue("periodoFiscal", out var periodoFiscal)
             && !string.IsNullOrWhiteSpace(periodoFiscal))
         {
@@ -85,7 +85,7 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate buyer (sujeto retenido) required fields
+        // Validar los campos obligatorios del comprador (sujeto retenido)
         foreach (var field in ComprobanteRetencionConstants.RequiredBuyerFields)
         {
             if (!document.BuyerInfo.TryGetValue(field, out var value) || string.IsNullOrWhiteSpace(value))
@@ -94,10 +94,10 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
             }
         }
 
-        // Validate each retention line item
+        // Validar cada línea de retención
         foreach (var item in document.Items)
         {
-            // TaxCode (item.TaxCode) must be a valid SRI retention tax type
+            // TaxCode (item.TaxCode) debe ser un tipo de impuesto de retención válido del SRI
             if (!ComprobanteRetencionConstants.ValidTaxCodes.Contains(item.TaxCode))
             {
                 errors.Add(
@@ -106,7 +106,7 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
                     "(1=Renta, 2=IVA, 6=ISD).");
             }
 
-            // TaxRate (retention percentage) must be positive
+            // TaxRate (porcentaje de retención) debe ser positivo
             if (item.TaxRate <= 0)
             {
                 errors.Add(
@@ -119,12 +119,12 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Auto-generates system fields (ambiente, tipoEmision, claveAcceso, fechaEmision)
-    /// into the document's IssuerInfo, then delegates XML building to the injected ComprobanteRetencionXmlBuilder.
+    /// Autogenera los campos del sistema (ambiente, tipoEmision, claveAcceso, fechaEmision)
+    /// en el IssuerInfo del documento, luego delega la construcción del XML al ComprobanteRetencionXmlBuilder inyectado.
     /// </summary>
     public Task<string> BuildXmlAsync(Document document, CancellationToken cancellationToken = default)
     {
-        // Validate that every retention line has the required sustento fields
+        // Validar que cada línea de retención tenga los campos de sustento requeridos
         foreach (var item in document.Items)
         {
             if (string.IsNullOrWhiteSpace(item.SustentoDocumentType))
@@ -139,7 +139,7 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Generates RIDE PDF for Comprobante de Retención by delegating to the shared RideGenerator.
+    /// Genera el RIDE PDF para el Comprobante de Retención delegando al RideGenerator compartido.
     /// </summary>
     public Task<byte[]> BuildRidePdfAsync(Document document, CancellationToken cancellationToken = default)
     {
@@ -147,29 +147,29 @@ public class ComprobanteRetencionStrategy : IDocumentTypeStrategy
     }
 
     /// <summary>
-    /// Populates system-generated fields into the document's IssuerInfo dictionary
-    /// before XML generation. Uses SRI configuration for environment and emission type,
-    /// and AccessKeyGenerator for the 49-digit access key.
-    /// Same logic as FacturaStrategy.PopulateSystemFields.
+    /// Rellena los campos generados por el sistema en el diccionario IssuerInfo del documento
+    /// antes de la generación del XML. Usa la configuración del SRI para el ambiente y el tipo de emisión,
+    /// y AccessKeyGenerator para la clave de acceso de 49 dígitos.
+    /// Misma lógica que FacturaStrategy.PopulateSystemFields.
     /// </summary>
     private void PopulateSystemFields(Document document)
     {
         var issuer = document.IssuerInfo;
         var now = DateTime.UtcNow;
 
-        // Determine environment from SRI configuration
+        // Determinar el ambiente desde la configuración del SRI
         var environment = _sriConfiguration.Environment;
 
         // ambiente: 1=Test, 2=Production
         issuer["ambiente"] = ((int)environment).ToString();
 
-        // tipoEmision: always Normal (1) for standard emission
+        // tipoEmision: siempre Normal (1) para la emisión estándar
         issuer["tipoEmision"] = ((int)EmissionType.Normal).ToString();
 
-        // fechaEmision: current date in dd/MM/yyyy format (SRI format)
+        // fechaEmision: fecha actual en formato dd/MM/yyyy (formato del SRI)
         issuer["fechaEmision"] = now.ToString("dd/MM/yyyy");
 
-        // claveAcceso: 49-digit access key generated using AccessKeyGenerator
+        // claveAcceso: clave de acceso de 49 dígitos generada con AccessKeyGenerator
         var numericCode = AccessKeyGenerator.GenerateNumericCode();
         var accessKey = AccessKeyGenerator.Generate(
             issueDate: now,

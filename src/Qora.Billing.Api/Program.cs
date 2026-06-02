@@ -10,7 +10,7 @@ using Qora.Billing.Infrastructure;
 using Qora.Billing.Infrastructure.Persistence;
 using Serilog;
 
-// ─── Bootstrap Serilog ───────────────────────────────────────────────
+// ─── Inicialización de Serilog ───────────────────────────────────────────────
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -23,22 +23,22 @@ try
     builder.Host.UseSerilog((context, services, configuration) =>
         configuration.ReadFrom.Configuration(context.Configuration));
 
-    // ─── Application Layer ───────────────────────────────────────────
+    // ─── Capa de Aplicación ───────────────────────────────────────────
     builder.Services.AddApplicationServices();
 
-    // ─── API Key Settings (environment-aware prefix) ──────────────
+    // ─── Configuración de API Key (prefijo según el ambiente) ──────────────
     builder.Services.Configure<Qora.Billing.Application.Settings.ApiKeySettings>(options =>
     {
         options.Environment = builder.Environment.IsProduction() ? "Production" : "Test";
     });
 
-    // ─── Infrastructure Layer (DB, repos, XML, signing, SRI, PDF) ───
+    // ─── Capa de Infraestructura (BD, repos, XML, firma, SRI, PDF) ───
     builder.Services.AddInfrastructureServices(builder.Configuration);
 
-    // ─── Tenant Context (scoped per request) ─────────────────────────
+    // ─── Contexto de Tenant (con alcance por solicitud) ─────────────────────────
     builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-    // ─── Authentication ──────────────────────────────────────────────
+    // ─── Autenticación ──────────────────────────────────────────────
     builder.Services.AddAuthentication(options =>
         {
             options.DefaultScheme = "MultiAuth";
@@ -64,7 +64,7 @@ try
 
     builder.Services.AddAuthorization();
 
-    // ─── Exception Handler ───────────────────────────────────────────
+    // ─── Manejador de Excepciones ───────────────────────────────────────────
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
@@ -121,7 +121,7 @@ try
             }
         });
 
-        // ─── X-Tenant-Id optional header (needed for service-token calls) ───
+        // ─── Encabezado opcional X-Tenant-Id (necesario para llamadas con service-token) ───
         options.OperationFilter<Qora.Billing.Api.Swagger.TenantIdHeaderFilter>();
     });
 
@@ -138,7 +138,7 @@ try
         });
     });
 
-    // ─── Rate Limiting ───────────────────────────────────────────────
+    // ─── Rate Limiting (limitación de solicitudes) ───────────────────────────────────────────────
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -171,7 +171,7 @@ try
         };
     });
 
-    // ─── Health Checks ───────────────────────────────────────────────
+    // ─── Health Checks (chequeos de salud) ───────────────────────────────────────────────
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<Qora.Billing.Infrastructure.Persistence.BillingDbContext>("database");
 
@@ -179,7 +179,7 @@ try
     var app = builder.Build();
     // ═══════════════════════════════════════════════════════════════════
 
-    // ─── Production: weak-key guard ─────────────────────────────────
+    // ─── Producción: protección contra clave débil ─────────────────────────────────
     if (app.Environment.IsProduction())
     {
         var encryptionKey = builder.Configuration["Encryption:Key"];
@@ -188,7 +188,7 @@ try
                 "Encryption:Key no puede ser el valor por defecto en ambiente Production.");
     }
 
-    // ─── Auto-migrate Database ───────────────────────────────────────
+    // ─── Migración automática de la Base de Datos ───────────────────────────────────────
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
@@ -201,10 +201,10 @@ try
         await db.Database.MigrateAsync();
         Log.Information("Database migration completed successfully");
 
-        // ─── B1d: Re-encrypt existing electronic_signatures rows ────────────
-        // Handles the data migration that cannot run inside the EF migration itself
-        // (AES+HKDF requires .NET crypto APIs not available in PL/pgSQL).
-        // Idempotent: rows already in HKDF-encrypted Base64 format are skipped.
+        // ─── B1d: Re-cifrar las filas existentes de electronic_signatures ────────────
+        // Maneja la migración de datos que no puede ejecutarse dentro de la propia migración de EF
+        // (AES+HKDF requiere APIs de criptografía de .NET no disponibles en PL/pgSQL).
+        // Idempotente: las filas que ya están en formato Base64 cifrado con HKDF se omiten.
         var certMigrator = new Qora.Billing.Infrastructure.Persistence.CertificateDataMigrator(
             db,
             builder.Configuration,
@@ -212,7 +212,7 @@ try
         await certMigrator.MigrateAsync();
     }
 
-    // ─── Middleware Pipeline ─────────────────────────────────────────
+    // ─── Pipeline de Middleware ─────────────────────────────────────────
     app.UseExceptionHandler();
 
     if (app.Environment.IsDevelopment())
@@ -231,7 +231,7 @@ try
     app.UseRateLimiter();
     app.UseTenantContext();
 
-    // ─── Map Endpoints ───────────────────────────────────────────────
+    // ─── Mapeo de Endpoints ───────────────────────────────────────────────
     app.MapDocumentEndpoints().RequireRateLimiting("api-key-policy");
     app.MapTenantEndpoints();
     app.MapCertificateEndpoints().RequireRateLimiting("api-key-policy");
@@ -250,5 +250,5 @@ finally
     Log.CloseAndFlush();
 }
 
-// Required for WebApplicationFactory in integration tests
+// Requerido por WebApplicationFactory en las pruebas de integración
 public partial class Program;

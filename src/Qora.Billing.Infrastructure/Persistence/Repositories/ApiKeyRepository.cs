@@ -16,7 +16,7 @@ public class ApiKeyRepository : IApiKeyRepository
     public async Task<ApiKey?> GetByKeyHashAsync(string keyHash, CancellationToken cancellationToken = default)
     {
         return await _context.ApiKeys
-            .IgnoreQueryFilters() // API key lookup is by hash, needs cross-tenant access
+            .IgnoreQueryFilters() // la búsqueda de API key es por hash, necesita acceso entre tenants
             .FirstOrDefaultAsync(a => a.KeyHash == keyHash, cancellationToken);
     }
 

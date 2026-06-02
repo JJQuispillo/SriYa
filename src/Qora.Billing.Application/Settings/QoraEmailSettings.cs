@@ -1,8 +1,8 @@
 namespace Qora.Billing.Application.Settings;
 
 /// <summary>
-/// SMTP settings for the Qora-managed email provider.
-/// Bound to the "Qora:Email" section in appsettings.
+/// Configuración SMTP para el proveedor de correo gestionado por Qora.
+/// Vinculada a la sección "Qora:Email" en appsettings.
 /// </summary>
 public class QoraEmailSettings
 {

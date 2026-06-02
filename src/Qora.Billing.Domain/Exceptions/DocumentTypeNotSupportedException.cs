@@ -3,7 +3,7 @@ using Qora.Billing.Domain.Enums;
 namespace Qora.Billing.Domain.Exceptions;
 
 /// <summary>
-/// Thrown when a document type has no registered strategy.
+/// Se lanza cuando un tipo de documento no tiene una estrategia registrada.
 /// </summary>
 public class DocumentTypeNotSupportedException : BillingDomainException
 {

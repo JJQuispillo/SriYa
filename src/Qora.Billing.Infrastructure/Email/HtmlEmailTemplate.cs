@@ -4,7 +4,7 @@ using System.Text;
 namespace Qora.Billing.Infrastructure.Email;
 
 /// <summary>
-/// Generates a professional HTML email body for an authorized billing document.
+/// Genera un cuerpo de email HTML profesional para un documento de facturación autorizado.
 /// </summary>
 public static class HtmlEmailTemplate
 {

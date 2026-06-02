@@ -20,9 +20,9 @@ public class ElectronicSignatureConfiguration(string encryptionKey) : IEntityTyp
             .HasColumnName("tenant_id")
             .IsRequired();
 
-        // CertificateData: stored encrypted as Base64 in a text column.
-        // Domain type is non-nullable byte[], so lambda delegates bridge to
-        // the nullable-typed converter via the internal static helpers.
+        // CertificateData: se almacena cifrado como Base64 en una columna text.
+        // El tipo de dominio es byte[] no anulable, por lo que los delegados lambda hacen de puente
+        // hacia el conversor de tipo anulable mediante los helpers estáticos internos.
         builder.Property(e => e.CertificateData)
             .HasColumnName("certificate_data")
             .HasColumnType("text")
@@ -31,8 +31,8 @@ public class ElectronicSignatureConfiguration(string encryptionKey) : IEntityTyp
                 v => EncryptedBytesConverter.EncryptValue(v, encryptionKey),
                 v => EncryptedBytesConverter.DecryptValue(v, encryptionKey));
 
-        // PasswordEncrypted: encrypted text column.
-        // Domain type is non-nullable string; bridged via internal static helpers.
+        // PasswordEncrypted: columna text cifrada.
+        // El tipo de dominio es string no anulable; se hace de puente mediante los helpers estáticos internos.
         builder.Property(e => e.PasswordEncrypted)
             .HasColumnName("password_encrypted")
             .HasColumnType("varchar(500)")
@@ -63,11 +63,11 @@ public class ElectronicSignatureConfiguration(string encryptionKey) : IEntityTyp
             .HasColumnName("updated_at")
             .IsRequired();
 
-        // Indexes
+        // Índices
         builder.HasIndex(e => e.TenantId)
             .HasDatabaseName("ix_electronic_signatures_tenant_id");
 
-        // Ignore domain events collection
+        // Ignorar la colección de eventos de dominio
         builder.Ignore(e => e.DomainEvents);
     }
 }

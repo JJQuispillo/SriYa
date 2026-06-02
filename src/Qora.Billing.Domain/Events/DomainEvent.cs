@@ -3,8 +3,8 @@ using MediatR;
 namespace Qora.Billing.Domain.Events;
 
 /// <summary>
-/// Base class for all domain events in the billing microservice.
-/// Implements INotification so events can be dispatched via MediatR.
+/// Clase base para todos los eventos de dominio del microservicio de facturación.
+/// Implementa INotification para que los eventos puedan despacharse mediante MediatR.
 /// </summary>
 public abstract class DomainEvent : INotification
 {

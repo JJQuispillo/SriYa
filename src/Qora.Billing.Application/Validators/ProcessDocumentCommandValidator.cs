@@ -9,8 +9,8 @@ namespace Qora.Billing.Application.Validators;
 public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocumentCommand>
 {
     /// <summary>
-    /// Static set of valid (TaxTypeCode, PercentageCode) pairs mirroring the seeded sri_tax_codes table.
-    /// Used for fast validation without a DB call. TaxRate is derived by the command handler.
+    /// Conjunto estático de pares válidos (TaxTypeCode, PercentageCode) que refleja la tabla sri_tax_codes precargada.
+    /// Se usa para validación rápida sin una llamada a la base de datos. El TaxRate lo deriva el command handler.
     /// </summary>
     private static readonly HashSet<(string TaxTypeCode, string PercentageCode)> ValidTaxCodes =
     [
@@ -71,7 +71,7 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
                 .Must(items => items != null && items.Count > 0)
                 .WithMessage("Se requiere al menos un ítem.");
 
-            // Item-level validation: common rules (description, quantity, price, codes)
+            // Validación a nivel de ítem: reglas comunes (descripción, cantidad, precio, códigos)
             RuleForEach(x => x.Request.Items).ChildRules(item =>
             {
                 item.RuleFor(i => i.Description)
@@ -99,7 +99,7 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
                     .WithMessage("El código de porcentaje de impuesto del ítem es requerido.");
             });
 
-            // Validate that TaxCode + TaxPercentageCode exist in the SRI reference table
+            // Valida que TaxCode + TaxPercentageCode existan en la tabla de referencia del SRI
             RuleFor(x => x.Request).Custom((req, ctx) =>
             {
                 if (req.Items is null) return;
@@ -107,7 +107,7 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
                 {
                     var item = req.Items[index];
                     if (string.IsNullOrWhiteSpace(item.TaxCode) || string.IsNullOrWhiteSpace(item.TaxPercentageCode))
-                        continue; // already caught by individual field rules above
+                        continue; // ya capturado por las reglas de campo individuales de arriba
 
                     if (!ValidTaxCodes.Contains((item.TaxCode, item.TaxPercentageCode)))
                     {
@@ -121,7 +121,7 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
             When(x => x.Request.DocumentType == DocumentType.ComprobanteRetencion, () =>
             {
 
-                // T5-002: Retención items must have all sustento fields populated
+                // T5-002: los ítems de retención deben tener todos los campos de sustento completados
                 RuleFor(x => x.Request).Custom((req, ctx) =>
                 {
                     if (req.Items is null) return;
@@ -166,8 +166,8 @@ public class ProcessDocumentCommandValidator : AbstractValidator<ProcessDocument
                 });
             });
 
-            // Buyer identification required when subtotal > $200
-            // Note: TaxRate is derived from the SRI table by the command handler, so we use subtotal only here.
+            // La identificación del comprador es requerida cuando el subtotal supera los $200
+            // Nota: el command handler deriva el TaxRate de la tabla del SRI, por lo que aquí usamos solo el subtotal.
             RuleFor(x => x.Request)
                 .Must(req =>
                 {

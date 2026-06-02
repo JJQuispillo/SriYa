@@ -12,7 +12,7 @@ public class Tenant : BaseEntity
     public string? ContactEmail { get; private set; }
     public bool IsActive { get; private set; }
 
-    // ── Email delivery settings ──────────────────────────────────────
+    // ── Configuración de envío de email ──────────────────────────────────────
     public bool EmailEnabled { get; private set; } = false;
     public EmailProvider EmailProvider { get; private set; } = EmailProvider.Qora;
     public string? SmtpHost { get; private set; }
@@ -65,8 +65,8 @@ public class Tenant : BaseEntity
     }
 
     /// <summary>
-    /// Updates the tenant's email delivery configuration.
-    /// Pass null for SMTP fields to leave them unchanged when only toggling enabled/provider.
+    /// Actualiza la configuración de envío de email del tenant.
+    /// Pase null en los campos SMTP para dejarlos sin cambios cuando solo se alterna enabled/provider.
     /// </summary>
     public void ConfigureEmail(
         bool emailEnabled,

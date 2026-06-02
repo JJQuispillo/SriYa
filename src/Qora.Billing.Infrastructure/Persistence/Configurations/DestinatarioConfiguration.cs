@@ -68,23 +68,23 @@ public class DestinatarioConfiguration : IEntityTypeConfiguration<Destinatario>
             .HasColumnName("updated_at")
             .IsRequired();
 
-        // Relationship: owned by Document, cascade delete
+        // Relación: propiedad de Document, borrado en cascada
         builder.HasOne<Document>()
             .WithMany(doc => doc.Destinatarios)
             .HasForeignKey(d => d.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Relationship: owns DestinatarioItems
+        // Relación: posee DestinatarioItems
         builder.HasMany(d => d.Items)
             .WithOne()
             .HasForeignKey(i => i.DestinatarioId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Index for lookups by document
+        // Índice para búsquedas por documento
         builder.HasIndex(d => d.DocumentId)
             .HasDatabaseName("ix_document_destinatarios_document_id");
 
-        // Ignore domain events collection (not persisted)
+        // Ignorar la colección de eventos de dominio (no se persiste)
         builder.Ignore(d => d.DomainEvents);
     }
 }
