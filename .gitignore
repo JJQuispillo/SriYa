@@ -73,3 +73,6 @@ Desktop.ini
 *.log
 logs/
 .claude/worktrees/
+
+# SDD orchestration infra (skill registry, local artifacts)
+.atl/

@@ -155,7 +155,9 @@ public class GlobalExceptionHandler : IExceptionHandler
     /// <summary>
     /// Normaliza el nombre de propiedad de FluentValidation para que coincida con el
     /// campo del body JSON: quita el prefijo del wrapper del command ("Request.") y
-    /// pasa la primera letra a minúscula (camelCase). Ej.: "Request.Ruc" → "ruc".
+    /// pasa a camelCase cada segmento de la ruta separada por puntos.
+    /// Ej.: "Request.Ruc" → "ruc"; "Emisor.Ruc" → "emisor.ruc";
+    /// "Detalles[0].CodigoPorcentaje" → "detalles[0].codigoPorcentaje".
     /// </summary>
     private static string ToJsonPropertyName(string propertyName)
     {
@@ -164,6 +166,19 @@ public class GlobalExceptionHandler : IExceptionHandler
             ? propertyName[wrapperPrefix.Length..]
             : propertyName;
 
-        return name.Length > 0 ? char.ToLowerInvariant(name[0]) + name[1..] : name;
+        if (name.Length == 0) return name;
+
+        // camelCase cada segmento de la ruta (separado por '.'), preservando índices como "[0]".
+        var segments = name.Split('.');
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            if (segment.Length > 0 && char.IsUpper(segment[0]))
+            {
+                segments[i] = char.ToLowerInvariant(segment[0]) + segment[1..];
+            }
+        }
+
+        return string.Join('.', segments);
     }
 }
