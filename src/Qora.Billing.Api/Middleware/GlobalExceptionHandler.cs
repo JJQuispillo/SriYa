@@ -43,7 +43,7 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Extensions =
                 {
                     ["errors"] = ex.Errors
-                        .Select(e => new { e.PropertyName, e.ErrorMessage })
+                        .Select(e => new { PropertyName = ToJsonPropertyName(e.PropertyName), e.ErrorMessage })
                         .ToList()
                 }
             },
@@ -150,5 +150,20 @@ public class GlobalExceptionHandler : IExceptionHandler
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
         return true;
+    }
+
+    /// <summary>
+    /// Normaliza el nombre de propiedad de FluentValidation para que coincida con el
+    /// campo del body JSON: quita el prefijo del wrapper del command ("Request.") y
+    /// pasa la primera letra a minúscula (camelCase). Ej.: "Request.Ruc" → "ruc".
+    /// </summary>
+    private static string ToJsonPropertyName(string propertyName)
+    {
+        const string wrapperPrefix = "Request.";
+        var name = propertyName.StartsWith(wrapperPrefix, StringComparison.Ordinal)
+            ? propertyName[wrapperPrefix.Length..]
+            : propertyName;
+
+        return name.Length > 0 ? char.ToLowerInvariant(name[0]) + name[1..] : name;
     }
 }
