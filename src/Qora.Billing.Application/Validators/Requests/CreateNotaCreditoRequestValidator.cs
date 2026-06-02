@@ -5,7 +5,7 @@ namespace Qora.Billing.Application.Validators.Requests;
 
 public class CreateNotaCreditoRequestValidator : AbstractValidator<CreateNotaCreditoRequest>
 {
-    private static readonly HashSet<string> ValidDocModificadoCodes = ["01"];
+    private static readonly HashSet<string> _validDocModificadoCodes = ["01"];
 
     public CreateNotaCreditoRequestValidator()
     {
@@ -22,7 +22,7 @@ public class CreateNotaCreditoRequestValidator : AbstractValidator<CreateNotaCre
             .WithMessage("La información del documento de sustento es requerida.");
 
         RuleFor(x => x.Sustento.CodDocModificado)
-            .Must(c => ValidDocModificadoCodes.Contains(c))
+            .Must(c => _validDocModificadoCodes.Contains(c))
             .When(x => x.Sustento is not null)
             .WithName("sustento.codDocModificado")
             .WithMessage("El código del documento modificado es inválido. Valor válido: 01 (Factura).");

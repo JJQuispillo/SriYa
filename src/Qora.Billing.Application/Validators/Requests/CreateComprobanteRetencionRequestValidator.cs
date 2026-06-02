@@ -6,7 +6,7 @@ namespace Qora.Billing.Application.Validators.Requests;
 
 public partial class CreateComprobanteRetencionRequestValidator : AbstractValidator<CreateComprobanteRetencionRequest>
 {
-    private static readonly HashSet<string> ValidRetencionTaxCodes = ["1", "2", "6"];
+    private static readonly HashSet<string> _validRetencionTaxCodes = ["1", "2", "6"];
 
     public CreateComprobanteRetencionRequestValidator()
     {
@@ -88,7 +88,7 @@ public partial class CreateComprobanteRetencionRequestValidator : AbstractValida
             {
                 var codigoImpuesto = req.Detalles[index].CodigoImpuesto;
                 if (string.IsNullOrWhiteSpace(codigoImpuesto)) continue;
-                if (!ValidRetencionTaxCodes.Contains(codigoImpuesto))
+                if (!_validRetencionTaxCodes.Contains(codigoImpuesto))
                 {
                     ctx.AddFailure(
                         $"detalles[{index}].codigoImpuesto",

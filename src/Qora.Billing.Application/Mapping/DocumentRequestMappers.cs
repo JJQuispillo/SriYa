@@ -20,7 +20,7 @@ namespace Qora.Billing.Application.Mapping;
 public static class DocumentRequestMappers
 {
     // Formato de fecha SRI (dd/MM/yyyy) usado por los XML builders.
-    private const string SriDateFormat = "dd/MM/yyyy";
+    private const string _sriDateFormat = "dd/MM/yyyy";
 
     public static CreateDocumentRequest ToCreateDocumentRequest(this CreateFacturaRequest request)
     {
@@ -215,5 +215,5 @@ public static class DocumentRequestMappers
     }
 
     private static string FormatDate(DateTime date) =>
-        date.ToString(SriDateFormat, CultureInfo.InvariantCulture);
+        date.ToString(_sriDateFormat, CultureInfo.InvariantCulture);
 }
