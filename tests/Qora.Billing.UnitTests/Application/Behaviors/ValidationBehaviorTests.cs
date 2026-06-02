@@ -20,7 +20,7 @@ public class ValidationBehaviorTests
 
         var result = await behavior.Handle(
             command,
-            (ct) => Task.FromResult(new TenantResponse(Guid.NewGuid(), "1792268071001", "Test", null, true, DateTime.UtcNow)),
+            () => Task.FromResult(new TenantResponse(Guid.NewGuid(), "1792268071001", "Test", null, true, DateTime.UtcNow)),
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -37,7 +37,7 @@ public class ValidationBehaviorTests
 
         var result = await behavior.Handle(
             command,
-            (ct) => Task.FromResult(new TenantResponse(Guid.NewGuid(), "1792268071001", "Test", null, true, DateTime.UtcNow)),
+            () => Task.FromResult(new TenantResponse(Guid.NewGuid(), "1792268071001", "Test", null, true, DateTime.UtcNow)),
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -53,7 +53,7 @@ public class ValidationBehaviorTests
 
         var act = () => behavior.Handle(
             command,
-            (ct) => Task.FromResult(new TenantResponse(Guid.NewGuid(), "", "", null, true, DateTime.UtcNow)),
+            () => Task.FromResult(new TenantResponse(Guid.NewGuid(), "", "", null, true, DateTime.UtcNow)),
             CancellationToken.None);
 
         var ex = await Assert.ThrowsAsync<ValidationException>(act);
@@ -73,7 +73,7 @@ public class ValidationBehaviorTests
 
         var act = () => behavior.Handle(
             command,
-            (ct) => Task.FromResult(new TenantResponse(Guid.NewGuid(), "", "", null, true, DateTime.UtcNow)),
+            () => Task.FromResult(new TenantResponse(Guid.NewGuid(), "", "", null, true, DateTime.UtcNow)),
             CancellationToken.None);
 
         var ex = await Assert.ThrowsAsync<ValidationException>(act);
