@@ -3,16 +3,8 @@ name: Billing CI
 on:
   push:
     branches: [main]
-    paths:
-      - 'billing/**'
   pull_request:
     branches: [main]
-    paths:
-      - 'billing/**'
-
-defaults:
-  run:
-    working-directory: billing
 
 env:
   DOTNET_VERSION: '9.0.x'
@@ -35,7 +27,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('billing/**/*.csproj') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -64,7 +56,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('billing/**/*.csproj') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -85,7 +77,7 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: billing/test-results/
+          path: test-results/
           retention-days: 30
 
   lint:

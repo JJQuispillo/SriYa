@@ -21,6 +21,24 @@ environment values differ.
 
 ## Quick Start
 
+### One-line install (recommended)
+
+Pulls the pre-built image, generates strong secrets, and starts the stack — no
+source checkout or .NET SDK required:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JJQuispillo/SriYa/main/install.sh | bash
+```
+
+The installer creates a `qora-billing/` directory with a `.env` (random
+secrets, `chmod 600`) and `docker-compose.yml`, then waits for `/health`.
+Override the target dir or port with `INSTALL_DIR=... BILLING_PORT=...`.
+
+> Review the generated `CORS_ORIGIN_0` and add TLS/reverse-proxy before
+> exposing the service publicly.
+
+### Manual (from source)
+
 ```bash
 # 1. Clone and navigate
 cd billing
