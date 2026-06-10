@@ -1,12 +1,12 @@
 # sriyactl
 
-Day-2 ops CLI for the [SriYa/Qora](https://github.com/JJQuispillo/billing) self-hosted stack.
-Wraps `docker compose` and the SriYa HTTP API behind a single, auditable, AI-friendly interface.
+CLI de operaciones day-2 para el stack auto-gestionado [SriYa/Qora](https://github.com/JJQuispillo/billing).
+Envuelve `docker compose` y la API HTTP de SriYa en una interfaz única, auditable y amigable para IA.
 
-> Status: **v1** — covers `infra`, `tenant`, and `cert status`. v2 will add `sriyactl mcp`,
-> document commands, and apikey management.
+> Estado: **v1** — cubre `infra`, `tenant` y `cert status`. v2 agregará `sriyactl mcp`,
+> documentación de comandos y gestión de apikeys.
 
-## Install
+## Instalación
 
 ### Homebrew (macOS / Linux)
 
@@ -14,10 +14,10 @@ Wraps `docker compose` and the SriYa HTTP API behind a single, auditable, AI-fri
 brew install JJQuispillo/tap/sriyactl
 ```
 
-### Binary release
+### Binario pre-compilado
 
-Download the latest tarball from the [Releases](https://github.com/JJQuispillo/sriyactl/releases)
-page. macOS / Linux:
+Descarga el tarball más reciente desde la página de [Releases](https://github.com/JJQuispillo/sriyactl/releases).
+macOS / Linux:
 
 ```bash
 curl -L https://github.com/JJQuispillo/sriyactl/releases/latest/download/sriyactl_<version>_<os>_<arch>.tar.gz \
@@ -25,18 +25,18 @@ curl -L https://github.com/JJQuispillo/sriyactl/releases/latest/download/sriyact
 chmod +x /usr/local/bin/sriyactl
 ```
 
-### From source
+### Desde fuente
 
 ```bash
 go install github.com/JJQuispillo/sriyactl/cmd/sriyactl@latest
 ```
 
-## Configure
+## Configuración
 
-`sriyactl` reads its config from `~/.config/sriyactl/config.toml`. On a fresh install
-the file does not exist; the CLI auto-creates it on first mutation.
+`sriyactl` lee su configuración de `~/.config/sriyactl/config.toml`. En una instalación
+nueva el archivo no existe; el CLI lo crea automáticamente en la primera mutación.
 
-Minimal config:
+Configuración mínima:
 
 ```toml
 current_context = "prod"
@@ -44,7 +44,7 @@ current_tenant  = "acme"
 
 [contexts.prod]
 url = "https://sri.example.com"
-service_token_ref = "keychain"   # always "keychain" in v1
+service_token_ref = "keychain"   # siempre "keychain" en v1
 
 [tenants.prod.acme]
 id  = "00000000-0000-0000-0000-000000000001"
@@ -52,117 +52,119 @@ ruc = "1790000000001"
 env = "prod"
 ```
 
-**Secrets never live in this file.** The service token is stored in the OS keychain
-under `sriyactl/<context>`; per-tenant API keys under `sriyactl/<context>/<tenant-alias>`.
+**Los secretos nunca viven en este archivo.** El token de servicio se almacena en el
+keychain del SO bajo `sriyactl/<context>`; las API keys por tenant bajo
+`sriyactl/<context>/<tenant-alias>`.
 
-For CI / headless contexts, set the env var instead:
+Para entornos CI / headless, usa las variables de entorno:
 
 ```bash
 export SRIYACTL_SERVICE_TOKEN="..."
-export SRIYACTL_API_KEY="..."        # per-tenant, optional
+export SRIYACTL_API_KEY="..."        # por tenant, opcional
 ```
 
-## Interactive TUI
+## TUI interactiva
 
-`sriyactl` with no arguments launches an interactive terminal UI when stdout is a TTY.
-Use `sriyactl ui` to force the TUI (even in pipes) or set `SRIYACTL_NO_TUI=1` to
-disable it in scripting environments.
+`sriyactl` sin argumentos lanza una terminal interactiva cuando stdout es una TTY.
+Usa `sriyactl ui` para forzar la TUI (incluso en pipes) o `SRIYACTL_NO_TUI=1` para
+deshabilitarla en entornos de scripting.
 
-### Menu navigation
+### Navegación del menú
 
-| Key | Action |
-|-----|--------|
-| ↑ / k | Move cursor up |
-| ↓ / j | Move cursor down |
-| Enter | Open selected screen |
-| Esc / q | Go back / quit |
-| r | Refresh current screen |
+| Tecla  | Acción                |
+|--------|-----------------------|
+| ↑ / k  | Mover cursor arriba   |
+| ↓ / j  | Mover cursor abajo    |
+| Enter  | Abrir pantalla        |
+| Esc / q| Volver / salir        |
+| r      | Refrescar pantalla    |
 
-### Screens
+### Pantallas
 
-| Screen | Description |
-|--------|-------------|
-| Dashboard | Infra, cert and tenant status at a glance (auto-refresh every 10 s) |
-| Install | Day-1 stack provisioning wizard |
-| Tenants | List, activate, or create tenants |
-| Logs | Real-time compose log viewer (follow mode) |
+| Pantalla  | Descripción                                                   |
+|-----------|---------------------------------------------------------------|
+| Dashboard | Estado de infra, cert y tenant de un vistazo (auto-refresh 10 s) |
+| Install   | Wizard de aprovisionamiento day-1                             |
+| Tenants   | Listar, activar o crear tenants                               |
+| Logs      | Visor de logs en tiempo real (modo follow)                    |
 
-### Mode badges
+### Insignias de modo
 
-The status bar shows `READONLY` (`SRIYACTL_READONLY=1`) or `DRY-RUN` (`--dry-run`)
-when those modes are active. Mutations are blocked or plan-only respectively.
+La barra de estado muestra `READONLY` (`SRIYACTL_READONLY=1`) o `DRY-RUN` (`--dry-run`)
+cuando esos modos están activos. Las mutaciones se bloquean o son plan-only respectivamente.
 
-### Keybindings per screen
+### Atajos por pantalla
 
-| Screen | Keys |
-|--------|------|
-| Dashboard | `r` refresh, `esc` menu |
-| Tenants (list) | `enter` / `u` activate, `c` create, `r` refresh, `esc` menu |
-| Tenants (create) | `enter` next field, `esc` cancel |
-| Install wizard | `tab` / arrows navigate, `enter` confirm, `ctrl+c` abort |
-| Logs | `esc` / `q` stop and go back, `r` reconnect (after stream ends) |
+| Pantalla              | Teclas                                          |
+|-----------------------|-------------------------------------------------|
+| Dashboard             | `r` refrescar, `esc` menú                       |
+| Tenants (lista)       | `enter` / `u` activar, `c` crear, `r` refrescar, `esc` menú |
+| Tenants (crear)       | `enter` siguiente campo, `esc` cancelar         |
+| Install wizard        | `tab` / flechas navegar, `enter` confirmar, `ctrl+c` abortar |
+| Logs                  | `esc` / `q` detener y volver, `r` reconectar (tras fin del stream) |
 
-## Commands (v1)
+## Comandos (v1)
 
-| Command | Description |
+| Comando | Descripción |
 |---------|-------------|
-| `sriyactl infra status`   | Aggregated stack state: compose ps + /health + image tag |
-| `sriyactl infra logs [-f] [service]` | Stream compose logs (Ctrl-C to stop) |
-| `sriyactl infra upgrade --to vX.Y.Z [--timeout 5m]` | Migration-aware: bump tag → pull → up → wait /health |
-| `sriyactl infra backup`   | `pg_dump` via compose exec; reports path + size |
-| `sriyactl infra restore <file>` | Restore a dump (destructive, requires `--yes`) |
-| `sriyactl infra doctor`   | Preflight: docker, daemon, .env keys, ENCRYPTION_KEY length |
-| `sriyactl tenant create --alias <a> --ruc <r> --razon-social <rs> --owner-name <o> --password <p> --cert <path>` | Atomic onboarding; auto-captures the apiKey to the keychain |
-| `sriyactl tenant list`    | List tenants in the current context |
-| `sriyactl tenant use <alias>` | Persist the active tenant |
-| `sriyactl tenant current` | Show the active tenant |
-| `sriyactl cert status [--tenant <alias>] [--warn-days N]` | Cert expiry watch (CI-signal) |
+| `sriyactl infra status`   | Estado agregado del stack: compose ps + /health + tag de imagen |
+| `sriyactl infra logs [-f] [service]` | Stream de logs de compose (Ctrl-C para detener) |
+| `sriyactl infra upgrade --to vX.Y.Z [--timeout 5m]` | Actualización con detección de migraciones: bump tag → pull → up → wait /health |
+| `sriyactl infra backup`   | `pg_dump` vía compose exec; reporta ruta + tamaño |
+| `sriyactl infra restore <file>` | Restaurar un dump (destructivo, requiere `--yes`) |
+| `sriyactl infra doctor`   | Preflight: docker, daemon, claves .env, longitud de ENCRYPTION_KEY |
+| `sriyactl tenant create --alias <a> --ruc <r> --razon-social <rs> --owner-name <o> --password <p> --cert <ruta>` | Onboarding atómico; captura automáticamente la apiKey en el keychain |
+| `sriyactl tenant list`    | Listar tenants en el contexto actual |
+| `sriyactl tenant use <alias>` | Persistir el tenant activo |
+| `sriyactl tenant current` | Mostrar el tenant activo |
+| `sriyactl cert status [--tenant <alias>] [--warn-days N]` | Vigilancia de expiración de certificados (señal para CI) |
 
-## Output & error model
+## Modelo de salida y errores
 
-Every command supports `--output json|yaml|table`. The default is auto-detected:
-**TTY → table, pipe → json**. The output envelope is:
+Todo comando soporta `--output json|yaml|table`. El valor por defecto se auto-detecta:
+**TTY → table, pipe → json**. El envelope de salida es:
 
 ```json
 {
   "schemaVersion": "1.0",
   "kind": "TenantList",
-  "data": { /* typed payload */ }
+  "data": { /* payload tipado */ }
 }
 ```
 
-Errors render as:
+Los errores se renderizan como:
 
 ```json
 { "error": { "code": "tenant_duplicate", "message": "...", "hint": "...", "retryable": false } }
 ```
 
-### Exit codes (stable, ai-contract)
+### Códigos de salida (estables, ai-contract)
 
-| Code | Meaning |
-|------|---------|
-| 0 | success |
-| 1 | generic error |
-| 2 | usage / flag |
-| 3 | auth (invalid or missing credentials) |
-| 4 | not found |
-| 5 | conflict (e.g. tenant already exists) |
-| 6 | transient / network / expiring cert |
-| 7 | mutating command blocked by read-only |
+| Código | Significado                                    |
+|--------|-----------------------------------------------|
+| 0      | éxito                                         |
+| 1      | error genérico                                |
+| 2      | error de uso / flags                          |
+| 3      | auth (credenciales inválidas o ausentes)      |
+| 4      | no encontrado                                 |
+| 5      | conflicto (ej. tenant ya existe)              |
+| 6      | transitorio / red / certificado por expirar   |
+| 7      | comando mutante bloqueado por solo-lectura    |
 
-## Read-only & dry-run
+## Solo-lectura y dry-run
 
-Two AI-safety features are first-class:
+Dos funcionalidades de seguridad para IA son ciudadanos de primera clase:
 
-- `SRIYACTL_READONLY=1` (or `--readonly`): all mutating commands fail fast with
-  `code: readonly_blocked` (exit 7) **before** any effect. Read-only commands keep working.
-- `--dry-run`: every mutating command prints a `Plan` object describing what it would
-  do, without executing it. Use this in CI before destructive operations.
+- `SRIYACTL_READONLY=1` (o `--readonly`): todo comando mutante falla rápido con
+  `code: readonly_blocked` (exit 7) **antes** de cualquier efecto. Los comandos de
+  solo lectura siguen funcionando.
+- `--dry-run`: todo comando mutante imprime un objeto `Plan` describiendo lo que haría,
+  sin ejecutarlo. Úsalo en CI antes de operaciones destructivas.
 
-## Examples
+## Ejemplos
 
 ```bash
-# Onboard a tenant
+# Dar de alta un tenant
 sriyactl tenant create \
   --alias acme \
   --ruc 1790000000001 \
@@ -171,32 +173,32 @@ sriyactl tenant create \
   --password "$BOOTSTRAP_PASSWORD" \
   --cert ./acme.p12
 
-# Pipe tenant list to jq
+# Pasar lista de tenants a jq
 sriyactl tenant list --output json | jq '.data.tenants[].alias'
 
-# Watch cert expiry in CI (exits 6 when any cert expires within 30 days)
+# Vigilar expiración de certificados en CI (exit 6 si alguno expira en 30 días)
 sriyactl cert status acme --warn-days 30
 
-# Check the stack is healthy
+# Verificar que el stack está saludable
 sriyactl infra status
 
-# Migration-aware upgrade with auto-rollback on health timeout
+# Actualización con detección de migraciones y rollback automático en timeout
 sriyactl infra upgrade --to v1.4.0 --timeout 10m
 
-# Run a destructive command in CI
-SRIYACTL_READONLY=1 sriyactl infra upgrade --to v1.4.0  # exits 7
+# Ejecutar un comando destructivo en CI
+SRIYACTL_READONLY=1 sriyactl infra upgrade --to v1.4.0  # exit 7
 
-# Print a restore plan without executing
+# Ver el plan de restauración sin ejecutar
 sriyactl infra restore ./backup-20260605.sql --dry-run
 ```
 
-## Related
+## Relacionados
 
-- [SriYa billing backend](https://github.com/JJQuispillo/billing) — the .NET 9 service
-  this CLI talks to.
-- [AGENTS.md](./AGENTS.md) — AI-agent contract: structured output, exit codes,
-  read-only mode.
+- [SriYa billing backend](https://github.com/JJQuispillo/billing) — el servicio .NET 9
+  con el que este CLI se comunica.
+- [AGENTS.md](./AGENTS.md) — contrato para agentes de IA: salida estructurada, códigos
+  de salida, modo solo-lectura.
 
-## License
+## Licencia
 
-MIT — see [LICENSE](./LICENSE).
+MIT — ver [LICENSE](./LICENSE).
