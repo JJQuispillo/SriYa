@@ -1,0 +1,74 @@
+# ============================================================================
+# SriYa API — Self-host / production compose.
+#
+# Pulls the pre-built image from GHCR (no source checkout or .NET SDK needed).
+# Use this file standalone:
+#
+#   curl -fsSL https://raw.githubusercontent.com/JJQuispillo/SriYa/main/docker-compose.prod.yml -o docker-compose.yml
+#   cp .env.example .env   # then fill in the secrets
+#   docker compose up -d
+#
+# Or just run the one-line installer (see README).
+# ============================================================================
+
+services:
+  billing-api:
+    image: ghcr.io/jjquispillo/sriya:${BILLING_IMAGE_TAG:-latest}
+    container_name: qora-billing-api
+    ports:
+      - "${BILLING_API_PORT:-8080}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # La connection string base usa el rol propietario/bootstrap (billing_user): ejecuta migraciones
+      # y provisiona los roles. En runtime la app deriva billing_app (restringido por RLS) y
+      # billing_privileged (BYPASSRLS) a partir de esta cadena, intercambiando usuario/contraseña.
+      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=qora_billing;Username=${BILLING_DB_USER:-billing_user};Password=${BILLING_DB_PASSWORD}
+      - Multitenancy__AppRolePassword=${BILLING_APP_DB_PASSWORD:-billing_app_change_me}
+      - Multitenancy__PrivilegedRolePassword=${BILLING_PRIVILEGED_DB_PASSWORD:-billing_privileged_change_me}
+      - Encryption__Key=${ENCRYPTION_KEY}
+      - Sri__BaseUrlPruebas=${SRI_BASE_URL_PRUEBAS:-https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline}
+      - Sri__BaseUrlProduccion=${SRI_BASE_URL_PRODUCCION:-https://cel.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline}
+      - Sri__AuthorizationUrlPruebas=${SRI_AUTH_URL_PRUEBAS:-https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline}
+      - Sri__AuthorizationUrlProduccion=${SRI_AUTH_URL_PRODUCCION:-https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline}
+      - Sri__TimeoutSeconds=${SRI_TIMEOUT:-30}
+      - Sri__MaxRetries=${SRI_MAX_RETRIES:-3}
+      - ServiceAuth__ServiceToken=${SERVICE_AUTH_TOKEN}
+      - Cors__AllowedOrigins__0=${CORS_ORIGIN_0:-http://localhost:3000}
+    depends_on:
+      billing-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - billing-network
+    restart: unless-stopped
+
+  billing-db:
+    image: postgres:16-alpine
+    container_name: qora-billing-db
+    environment:
+      POSTGRES_DB: qora_billing
+      POSTGRES_USER: ${BILLING_DB_USER:-billing_user}
+      POSTGRES_PASSWORD: ${BILLING_DB_PASSWORD}
+    volumes:
+      - billing-db-data:/var/lib/postgresql/data
+    networks:
+      - billing-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BILLING_DB_USER:-billing_user} -d qora_billing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  billing-db-data:
+
+networks:
+  billing-network:
+    driver: bridge

@@ -1,0 +1,101 @@
+services:
+  billing-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qora-billing-api
+    ports:
+      - "${BILLING_API_PORT:-8080}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # La connection string base usa el rol propietario/bootstrap (billing_user): ejecuta migraciones
+      # y provisiona los roles. En runtime la app deriva billing_app (restringido por RLS) y
+      # billing_privileged (BYPASSRLS) a partir de esta cadena, intercambiando usuario/contraseña.
+      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=qora_billing;Username=${BILLING_DB_USER:-billing_user};Password=${BILLING_DB_PASSWORD}
+      - Multitenancy__AppRolePassword=${BILLING_APP_DB_PASSWORD:-billing_app_change_me}
+      - Multitenancy__PrivilegedRolePassword=${BILLING_PRIVILEGED_DB_PASSWORD:-billing_privileged_change_me}
+      - Encryption__Key=${ENCRYPTION_KEY}
+      - Sri__BaseUrlPruebas=${SRI_BASE_URL_PRUEBAS:-https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline}
+      - Sri__BaseUrlProduccion=${SRI_BASE_URL_PRODUCCION:-https://cel.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline}
+      - Sri__AuthorizationUrlPruebas=${SRI_AUTH_URL_PRUEBAS:-https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline}
+      - Sri__AuthorizationUrlProduccion=${SRI_AUTH_URL_PRODUCCION:-https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline}
+      - Sri__TimeoutSeconds=${SRI_TIMEOUT:-30}
+      - Sri__MaxRetries=${SRI_MAX_RETRIES:-3}
+      - ServiceAuth__ServiceToken=${SERVICE_AUTH_TOKEN}
+      - Cors__AllowedOrigins__0=${CORS_ORIGIN_0:-http://localhost:3000}
+      # Optional: distributed cache (redis-ready-cache-limiter). The default is an in-process
+      # cache (Provider=InMemory) that never touches Redis. To enable Redis, uncomment the
+      # `redis` service below and the two env vars here. Cache:Provider=Redis with an empty
+      # connection string fails fast at startup.
+      # - Cache__Provider=Redis
+      # - Cache__RedisConnectionString=redis:6379
+    # Optional: mount your SRI signing certificate (.p12) into the container.
+    # Certificates are normally uploaded per-tenant via
+    # POST /api/tenants/{id}/certificates, so this mount is only needed if you
+    # prefer to bind a file from the host. Uncomment and adjust the path.
+    # volumes:
+    #   - ./certs:/app/certs:ro
+    depends_on:
+      billing-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - billing-network
+    restart: unless-stopped
+    # Optional: Traefik reverse-proxy labels for a hosted/public deployment.
+    # Uncomment and replace `your-domain.example.com` with your own host if you
+    # run Traefik with an ACME (Let's Encrypt) cert resolver named `letsencrypt`.
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.billing-api.rule=Host(`your-domain.example.com`)"
+    #   - "traefik.http.routers.billing-api.entrypoints=websecure"
+    #   - "traefik.http.routers.billing-api.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.billing-api.loadbalancer.server.port=8080"
+
+  billing-db:
+    image: postgres:16-alpine
+    container_name: qora-billing-db
+    environment:
+      POSTGRES_DB: qora_billing
+      POSTGRES_USER: ${BILLING_DB_USER:-billing_user}
+      POSTGRES_PASSWORD: ${BILLING_DB_PASSWORD}
+    volumes:
+      - billing-db-data:/var/lib/postgresql/data
+    networks:
+      - billing-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BILLING_DB_USER:-billing_user} -d qora_billing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Optional: Redis for the distributed cache seam (redis-ready-cache-limiter).
+  # Inert by default — the API uses an in-process cache unless Cache__Provider=Redis.
+  # Uncomment this service AND the Cache__* env vars on `billing-api` to enable it.
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: qora-billing-redis
+  #   command: ["redis-server", "--save", "", "--appendonly", "no"]
+  #   networks:
+  #     - billing-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 5s
+
+volumes:
+  billing-db-data:
+
+networks:
+  billing-network:
+    driver: bridge

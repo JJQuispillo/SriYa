@@ -1,0 +1,86 @@
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
+using Qora.Billing.Domain.Interfaces;
+
+namespace Qora.Billing.Api.Middleware;
+
+/// <summary>
+/// Manejador de autenticación personalizado que valida las API keys mediante el encabezado X-Api-Key.
+/// Calcula el hash de la clave proporcionada con SHA-256 y la busca en la base de datos.
+/// Si tiene éxito, establece el claim TenantId a partir del registro de la API key asociada.
+/// </summary>
+public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+{
+    public const string SchemeName = "ApiKey";
+    private const string ApiKeyHeaderName = "X-Api-Key";
+
+    private readonly IApiKeyRepository _apiKeyRepository;
+
+    public ApiKeyAuthenticationHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        IApiKeyRepository apiKeyRepository)
+        : base(options, logger, encoder)
+    {
+        _apiKeyRepository = apiKeyRepository;
+    }
+
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        if (!Request.Headers.TryGetValue(ApiKeyHeaderName, out var apiKeyValues))
+        {
+            return AuthenticateResult.NoResult();
+        }
+
+        var apiKey = apiKeyValues.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return AuthenticateResult.Fail("La API key está vacía.");
+        }
+
+        // Calcula el hash de la clave proporcionada con SHA-256
+        var keyHash = HashApiKey(apiKey);
+
+        // Busca en la base de datos
+        var apiKeyEntity = await _apiKeyRepository.GetByKeyHashAsync(keyHash);
+
+        if (apiKeyEntity is null)
+        {
+            return AuthenticateResult.Fail("API key inválida.");
+        }
+
+        if (!apiKeyEntity.IsActive)
+        {
+            return AuthenticateResult.Fail("La API key ha sido revocada.");
+        }
+
+        if (apiKeyEntity.ExpiresAt.HasValue && apiKeyEntity.ExpiresAt.Value < DateTime.UtcNow)
+        {
+            return AuthenticateResult.Fail("La API key ha expirado.");
+        }
+
+        var claims = new[]
+        {
+            new Claim("TenantId", apiKeyEntity.TenantId.ToString()),
+            new Claim(ClaimTypes.Name, apiKeyEntity.Name),
+            new Claim(ClaimTypes.AuthenticationMethod, SchemeName)
+        };
+
+        var identity = new ClaimsIdentity(claims, SchemeName);
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, SchemeName);
+
+        return AuthenticateResult.Success(ticket);
+    }
+
+    private static string HashApiKey(string apiKey)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(apiKey));
+        return Convert.ToHexStringLower(bytes);
+    }
+}

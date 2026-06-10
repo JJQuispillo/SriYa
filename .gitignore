@@ -1,0 +1,78 @@
+## .NET / C# .gitignore
+
+# Build output
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains Rider / IntelliJ
+.idea/
+
+# Vim swap files
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!**/packages/build/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# App settings with secrets / environment-specific config
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+
+# Launch settings (contains local URLs/ports)
+**/Properties/launchSettings.json
+
+# Test results and coverage
+TestResults/
+coverage/
+*.coveragexml
+*.coverage
+*.cobertura.xml
+*.opencover.xml
+
+# NCrunch
+*.ncrunch*
+_NCrunch_*/
+
+# MSBuild / Roslyn
+*.pidb
+*.pdb
+*.mdb
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+.claude/worktrees/
+
+# SDD orchestration infra (skill registry, local artifacts)
+.atl/

@@ -1,0 +1,9 @@
+ SriYa — menú principal 
+
+> Dashboard (estado de la instalación)
+  Install (provisionar el stack día-1)
+  Tenants (listar / crear / activar)
+  Logs (visor con follow)
+  Salir
+
+↑/↓ mover · enter abrir · q salir

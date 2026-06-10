@@ -1,0 +1,103 @@
+change: sriyactl-installer
+mode: openspec
+created: 2026-06-08
+type: feature
+description: >
+  Convertir sriyactl en el instalador all-in-one + herramienta day-2, distribuido vía
+  Homebrew (`brew install JJQuispillo/tap/sriyactl` + `sriyactl infra install`). Porta la
+  lógica de install.sh (pin de VERSION, .env con secretos charset-safe, descarga del compose
+  pin-a-tag, pull/up, espera de salud 90s, bootstrap del primer tenant) a Go. install.sh se
+  deprecа a un shim delgado (instala sriyactl, luego exec `sriyactl infra install`).
+
+decisions_locked:
+  - CLI es el all-in-one (no se mantiene el bash installer en paralelo).
+  - Org de GitHub = JJQuispillo (NO anomalyco); go.mod e .goreleaser.yaml deben renombrarse.
+  - Docker NO es dependencia dura de brew; la CLI detecta + guía, con --auto-install opcional vía brew.
+
+dag:
+  exploration: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: in_progress  # Fase 1 (rename) done T-INST-001..003; Fase 2 (internal/installer) done T-INST-010..014; Fase 3 (handler+cmd infra install) done T-INST-020..024; Fases 4-9 pending
+  verify: pending
+  archive: pending
+
+artifacts:
+  exploration: openspec/changes/sriyactl-installer/exploration.md
+  proposal: openspec/changes/sriyactl-installer/proposal.md
+  spec:
+    - openspec/changes/sriyactl-installer/specs/infra/spec.md
+    - openspec/changes/sriyactl-installer/specs/tenant/spec.md
+    - openspec/changes/sriyactl-installer/specs/distribution/spec.md
+  design: openspec/changes/sriyactl-installer/design.md
+  tasks: openspec/changes/sriyactl-installer/tasks.md
+
+recommended_approach: >
+  Enfoque 2 — nuevo paquete internal/installer (descarga compose pin-a-tag, render de .env,
+  generador de secretos charset-safe [A-Za-z0-9], prompts TTY) + comando `infra install`
+  delgado que reusa ExecRunner, InfraDoctorHandler, el polling de /health/ready y
+  BootstrapTenant.
+
+key_findings:
+  - id: F1
+    severity: high
+    title: "Bug latente: runBackup usa exec -T postgres pg_dump -U postgres billing; el stack real es billing-db / billing_user / qora_billing"
+    refs:
+      - sriyactl/internal/core/infra.go:331-355
+      - billing/docker-compose.prod.yml:50-67
+      - billing/README.md:84-90
+  - id: F2
+    severity: high
+    title: "InfraDoctorHandler busca POSTGRES_PASSWORD en .env, pero install.sh escribe BILLING_DB_PASSWORD -> doctor reporta env-keys:fail en stack válido"
+    refs:
+      - sriyactl/internal/core/infra.go:463
+      - billing/install.sh:108-113
+  - id: F3
+    severity: high
+    title: "Rename anomalyco->JJQuispillo toca el module path (go.mod) + ~15 imports internos + .goreleaser.yaml (tap.owner, homepage, release.github.owner)"
+    refs:
+      - sriyactl/go.mod:1
+      - sriyactl/.goreleaser.yaml:69-84
+  - id: F4
+    severity: medium
+    title: "sriyactl/ aún no es repo git; falta git init, push público y crear repo JJQuispillo/homebrew-tap + PAT + workflow release tag-triggered (release.draft:true hoy)"
+    refs:
+      - sriyactl/.goreleaser.yaml:80-87
+  - id: F5
+    severity: medium
+    title: "Segundo chicken-and-egg: tenant create exige contexto en config.toml + service token en keychain; infra install debe sembrar contexto local + token desde el .env recién generado"
+    refs:
+      - sriyactl/internal/cli/wiring.go:48-70
+      - sriyactl/internal/cli/tenant.go
+  - id: F6
+    severity: medium
+    title: "infra doctor exige install dir (compose ps + ValidateInstallDir); en infra install el dir aún no existe -> separar checks pre-instalación (docker/daemon) de post (env keys)"
+    refs:
+      - sriyactl/internal/core/infra.go:433-461
+
+contract_verified:
+  bootstrap_route: "POST /api/v1/bootstrap"
+  bootstrap_auth: "X-Service-Token (esquema ServiceToken)"
+  bootstrap_fields: "multipart: certificate(.p12/.pfx), ruc, razonSocial, password, ownerName (req); nombreComercial, correoContacto, apiKeyName (opt)"
+  bootstrap_success: "201 Created con tenantId + apiKey en claro una sola vez"
+  compose_services: "billing-api, billing-db"
+  db: "user=billing_user db=qora_billing image=postgres:16-alpine"
+  refs:
+    - billing/src/Qora.Billing.Api/Endpoints/BootstrapEndpoints.cs:31-100
+
+resolved_in_proposal:
+  - "Subcomando: `sriyactl infra install` (consistente con el grupo infra existente)."
+  - "Bootstrap del primer tenant: interactivo por defecto en TTY; --no-bootstrap para saltar; flags para headless. No es hard-require."
+  - "--auto-install: macOS ofrece `brew install colima docker docker-compose` sólo si brew presente; Linux sólo guía (sin sudo). Default = detectar+guiar; auto-install opt-in."
+  - "Bugs latentes F1/F2 incluidos en scope (bloquean operabilidad del stack instalado)."
+  - "Rename anomalyco->JJQuispillo (go.mod + ~15 imports + .goreleaser.yaml) en scope."
+
+open_questions:
+  - "Unificar naming DB cambiando el código Go (hardcode billing-db/billing_user/qora_billing) vs leerlo del .env/compose -> resolver en design."
+  - "infra install debe correr `colima start` tras instalar Colima, o sólo instalar+guiar -> design."
+
+ready_for_proposal: true
+proposal_done: true
+next_recommended: "Run /sdd-apply to implement the task checklist (start with Fase 1 rename gate)."

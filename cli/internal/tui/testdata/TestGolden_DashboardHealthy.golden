@@ -1,0 +1,13 @@
+ Dashboard 
+
+Infra
+  estado: ok · imagen: 1.0.0 · dir: /srv/sriya
+  - api          running healthy
+
+Certificado
+  - ACME SA · valid · vence 2027-01-01 (200 días)
+
+Tenant
+  activo: acme (ctx local)
+
+r refrescar · esc menú

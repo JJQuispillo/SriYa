@@ -1,0 +1,19 @@
+services:
+  billing-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=qora_billing_dev;Username=billing_user;Password=dev_password
+    ports:
+      - "5100:8080"
+    volumes:
+      - ./src/Qora.Billing.Api/appsettings.Development.json:/app/appsettings.Development.json:ro
+
+  billing-db:
+    environment:
+      POSTGRES_DB: qora_billing_dev
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5433:5432"

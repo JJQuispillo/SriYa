@@ -1,0 +1,86 @@
+# .goreleaser.yaml — multi-arch release for sriyactl.
+# Lives in billing/cli/. See ../openspec/ for context.
+
+version: 2
+
+project_name: sriyactl
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: sriyactl
+    main: ./cmd/sriyactl
+    binary: sriyactl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s
+      - -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+  - id: zip
+    format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ .Version }}-SNAPSHOT"
+
+changelog:
+  use: git
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+brews:
+  - ids: [default]
+    repository:
+      owner: JJQuispillo
+      name: homebrew-tap
+    homepage: "https://github.com/JJQuispillo/billing/tree/main/cli"
+    description: "Day-2 ops CLI for the SriYa/Qora self-hosted stack"
+    license: MIT
+    install: |
+      bin.install "sriyactl"
+    test: |
+      system "#{bin}/sriyactl", "--version"
+
+release:
+  github:
+    owner: JJQuispillo
+    name: sriyactl
+  draft: true
+  prerelease: auto
+  name_template: "v{{ .Version }}"

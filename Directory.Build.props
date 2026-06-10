@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Microsoft.Extensions.* packages are pinned to 10.x (required by MediatR 14.x) while
+         the framework packages (EF Core, ASP.NET Core) stay on 9.x. NU1605 is suppressed
+         to allow the framework packages' 9.x transitive deps to resolve up to 10.x. -->
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+  </PropertyGroup>
+</Project>
