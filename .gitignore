@@ -76,3 +76,6 @@ logs/
 
 # SDD orchestration infra (skill registry, local artifacts)
 .atl/
+
+# OpenSpec — local planning artifacts only
+openspec/
